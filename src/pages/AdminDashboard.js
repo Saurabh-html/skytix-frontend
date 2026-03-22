@@ -1,5 +1,5 @@
 import API from '../services/api';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 const AdminDashboard = ({ showAlert }) => {
 
@@ -31,18 +31,18 @@ const AdminDashboard = ({ showAlert }) => {
     seatsAvailable: ''
   });
 
-  const fetchFlights = async () => {
-    try {
-      const res = await API.get('/flights');
-      setFlights(res.data.flights);
-    } catch {
-      showAlert('Error fetching flights', 'danger');
-    }
-  };
+const fetchFlights = useCallback(async () => {
+  try {
+    const res = await API.get('/flights');
+    setFlights(res.data.flights);
+  } catch {
+    showAlert('Error fetching flights', 'danger');
+  }
+}, [showAlert]);
 
-  useEffect(() => {
-    fetchFlights();
-  }, []);
+useEffect(() => {
+  fetchFlights();
+}, [fetchFlights]);
 
   const user = JSON.parse(localStorage.getItem('user'));
 
