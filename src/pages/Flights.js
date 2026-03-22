@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import API from '../services/api';
 
 const Flights = ({ showAlert }) => {
@@ -9,34 +9,87 @@ const Flights = ({ showAlert }) => {
   const [searched, setSearched] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
 
-  //  NEW: passengers state
   const [passengers, setPassengers] = useState([
     { name: '', age: '', gender: '' }
   ]);
 
-  //  SEARCH
+  //  AIRPORT STATES
+  const [airports, setAirports] = useState([]);
+  const [filteredAirports, setFilteredAirports] = useState([]);
+  const [activeField, setActiveField] = useState(null);
+
+  //  LOAD AIRPORTS
+  useEffect(() => {
+    const fetchAirports = async () => {
+      try {
+        const res = await API.get('/airports');
+        setAirports(res.data);
+      } catch {
+        showAlert('Error loading airports', 'danger');
+      }
+    };
+
+    fetchAirports();
+    //eslint-disable-next-line
+  }, []);
+
+  //  DATE LIMIT
+  const today = new Date();
+  const maxDate = new Date();
+  maxDate.setMonth(today.getMonth() + 2);
+
+  const formatDate = (d) => d.toISOString().split('T')[0];
+
+  // AUTOCOMPLETE HANDLER
+  const handleSearchInput = (value, field) => {
+    if (field === 'from') setFrom(value);
+    else setTo(value);
+
+    setActiveField(field);
+
+    const filtered = airports.filter(a =>
+      a.city.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setFilteredAirports(filtered);
+  };
+
+  //  SEARCH FLIGHTS
   const searchFlights = async () => {
     if (!from || !to || !date) {
       showAlert('Please enter all fields', 'warning');
       return;
     }
 
+    if (from.toLowerCase() === to.toLowerCase()) {
+      showAlert('From and To cannot be same', 'warning');
+      return;
+    }
+
     try {
+      const formattedDate = new Date(date).toISOString();
+
       const res = await API.get(
-        `/flights?from=${from}&to=${to}&date=${date}`
+        `/flights?from=${from}&to=${to}&date=${formattedDate}`
       );
 
       setFlights(res.data.flights);
       setSearched(true);
-    } catch (err) {
+
+    } catch {
       showAlert('Error fetching flights', 'danger');
     }
   };
 
   //  OPEN MODAL
   const bookFlight = (flight) => {
+    if (flight.seatsAvailable === 0) {
+      showAlert('No seats available', 'danger');
+      return;
+    }
+
     setSelectedFlight(flight);
-    setPassengers([{ name: '', age: '', gender: '' }]); // reset
+    setPassengers([{ name: '', age: '', gender: '' }]);
   };
 
   //  ADD PASSENGER
@@ -46,20 +99,25 @@ const Flights = ({ showAlert }) => {
 
   //  REMOVE PASSENGER
   const removePassenger = (index) => {
-    const updated = passengers.filter((_, i) => i !== index);
-    setPassengers(updated);
+    setPassengers(passengers.filter((_, i) => i !== index));
   };
 
-  //  HANDLE INPUT CHANGE
+  //  UPDATE PASSENGER
   const handlePassengerChange = (index, field, value) => {
     const updated = [...passengers];
     updated[index][field] = value;
     setPassengers(updated);
   };
 
-  // CONFIRM BOOKING
+  //  CONFIRM BOOKING
   const confirmBooking = async () => {
-    // validation
+    if (!selectedFlight) return;
+
+    if (passengers.length > selectedFlight.seatsAvailable) {
+      showAlert('Not enough seats available', 'danger');
+      return;
+    }
+
     for (let p of passengers) {
       if (!p.name || !p.age || !p.gender) {
         showAlert('Fill all passenger details', 'warning');
@@ -78,10 +136,7 @@ const Flights = ({ showAlert }) => {
       setSelectedFlight(null);
 
     } catch (err) {
-      showAlert(
-        err.response?.data?.message || 'Error booking ticket',
-        'danger'
-      );
+      showAlert(err.response?.data?.message || 'Error', 'danger');
     }
   };
 
@@ -90,32 +145,74 @@ const Flights = ({ showAlert }) => {
 
       {/*  SEARCH */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 className="text-2xl font-bold mb-4 text-gray-700">
-          Search Flights
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Search Flights</h2>
 
         <div className="flex gap-4 flex-wrap">
-          <input
-            type="text"
-            placeholder="From"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="border p-2 rounded w-full sm:w-[200px]"
-          />
 
-          <input
-            type="text"
-            placeholder="To"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="border p-2 rounded w-full sm:w-[200px]"
-          />
+          {/* FROM */}
+          <div className="relative">
+            <input
+              value={from}
+              onChange={(e) => handleSearchInput(e.target.value, 'from')}
+              onFocus={() => setActiveField('from')}
+              placeholder="From"
+              className="border p-2 rounded w-[200px]"
+            />
 
+            {activeField === 'from' && filteredAirports.length > 0 && (
+              <div className="absolute bg-white border w-full max-h-40 overflow-y-auto z-10">
+                {filteredAirports.map((a, i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      setFrom(a.city);
+                      setFilteredAirports([]);
+                    }}
+                    className="p-2 hover:bg-gray-200 cursor-pointer"
+                  >
+                    {a.city}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* TO */}
+          <div className="relative">
+            <input
+              value={to}
+              onChange={(e) => handleSearchInput(e.target.value, 'to')}
+              onFocus={() => setActiveField('to')}
+              placeholder="To"
+              className="border p-2 rounded w-[200px]"
+            />
+
+            {activeField === 'to' && filteredAirports.length > 0 && (
+              <div className="absolute bg-white border w-full max-h-40 overflow-y-auto z-10">
+                {filteredAirports.map((a, i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      setTo(a.city);
+                      setFilteredAirports([]);
+                    }}
+                    className="p-2 hover:bg-gray-200 cursor-pointer"
+                  >
+                    {a.city}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* DATE */}
           <input
             type="date"
             value={date}
+            min={formatDate(today)}
+            max={formatDate(maxDate)}
             onChange={(e) => setDate(e.target.value)}
-            className="border p-2 rounded w-full sm:w-[200px]"
+            className="border p-2 rounded"
           />
 
           <button
@@ -124,47 +221,41 @@ const Flights = ({ showAlert }) => {
           >
             Search
           </button>
+
         </div>
       </div>
 
-      {/*  NO FLIGHTS */}
+      {/* RESULTS */}
       {searched && flights.length === 0 && (
         <p className="text-center text-gray-500">
-          No flights available between these airports.
+          No flights available
         </p>
       )}
 
-      {/* \ FLIGHTS */}
       <div className="grid gap-4 md:grid-cols-2">
         {flights.map((f) => (
-          <div key={f._id} className="bg-white p-4 rounded-lg shadow-md">
+          <div key={f._id} className="bg-white p-4 rounded shadow">
+
             <h3 className="text-lg font-semibold text-blue-600">
               {f.flightNumber}
             </h3>
 
             <p>{f.from} → {f.to}</p>
-
-            <p className="text-sm text-gray-500">
-              Selected Date: {date}
-            </p>
-
-            <p className="text-sm text-gray-500">
-                Seats Available: {f.seatsAvailable}
-              </p>
-
+            <p>Seats Available: {f.seatsAvailable}</p>
             <p className="font-bold">₹ {f.price}</p>
 
             <button
-            disabled={f.seatsAvailable === 0}
-            onClick={() => bookFlight(f)}
-            className={`mt-3 px-4 py-2 rounded text-white ${
-              f.seatsAvailable === 0
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700'
-            }`}
-          >
-            {f.seatsAvailable === 0 ? 'Sold Out' : 'Book Now'}
-          </button>
+              disabled={f.seatsAvailable === 0}
+              onClick={() => bookFlight(f)}
+              className={`mt-2 px-3 py-1 rounded text-white ${
+                f.seatsAvailable === 0
+                  ? 'bg-gray-400'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {f.seatsAvailable === 0 ? 'Sold Out' : 'Book'}
+            </button>
+
           </div>
         ))}
       </div>
@@ -179,7 +270,6 @@ const Flights = ({ showAlert }) => {
               Book Flight {selectedFlight.flightNumber}
             </h2>
 
-            {/*  PASSENGERS */}
             {passengers.map((p, index) => (
               <div key={index} className="border p-3 mb-3 rounded">
 
@@ -205,14 +295,17 @@ const Flights = ({ showAlert }) => {
                   className="border p-2 w-full mb-2"
                 />
 
-                <input
-                  placeholder="Gender"
+                <select
                   value={p.gender}
                   onChange={(e) =>
                     handlePassengerChange(index, 'gender', e.target.value)
                   }
                   className="border p-2 w-full mb-2"
-                />
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
 
                 {passengers.length > 1 && (
                   <button
@@ -225,7 +318,6 @@ const Flights = ({ showAlert }) => {
               </div>
             ))}
 
-            {/*  ADD */}
             <button
               onClick={addPassenger}
               className="bg-blue-500 text-white px-3 py-1 rounded mb-3"
@@ -233,12 +325,10 @@ const Flights = ({ showAlert }) => {
               + Add Passenger
             </button>
 
-            {/*  TOTAL */}
             <p className="font-bold mb-3">
               Total: ₹ {selectedFlight.price * passengers.length}
             </p>
 
-            {/* ACTIONS */}
             <button
               onClick={confirmBooking}
               className="bg-green-600 text-white px-4 py-2 rounded"
