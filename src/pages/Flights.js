@@ -148,14 +148,23 @@ const Flights = ({ showAlert }) => {
               Selected Date: {date}
             </p>
 
+            <p className="text-sm text-gray-500">
+                Seats Available: {f.seatsAvailable}
+              </p>
+
             <p className="font-bold">₹ {f.price}</p>
 
             <button
-              onClick={() => bookFlight(f)}
-              className="mt-3 bg-green-600 text-white px-4 py-2 rounded"
-            >
-              Book Now
-            </button>
+            disabled={f.seatsAvailable === 0}
+            onClick={() => bookFlight(f)}
+            className={`mt-3 px-4 py-2 rounded text-white ${
+              f.seatsAvailable === 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {f.seatsAvailable === 0 ? 'Sold Out' : 'Book Now'}
+          </button>
           </div>
         ))}
       </div>

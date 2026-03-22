@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 const MyBookings = ({ showAlert }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedPassengers, setSelectedPassengers] = useState({});
 
   useEffect(() => {
     fetchBookings();
@@ -25,6 +26,23 @@ const MyBookings = ({ showAlert }) => {
     }
   };
 
+  const togglePassenger = (bookingId, index) => {
+  setSelectedPassengers(prev => {
+    const current = prev[bookingId] || [];
+
+    if (current.includes(index)) {
+      return {
+        ...prev,
+        [bookingId]: current.filter(i => i !== index)
+      };
+    } else {
+      return {
+        ...prev,
+        [bookingId]: [...current, index]
+      };
+    }
+  });
+};
 
 const downloadTicket = (booking) => {
   const doc = new jsPDF();
@@ -51,20 +69,28 @@ const downloadTicket = (booking) => {
   doc.save('ticket.pdf');
 };
 
-  const cancelBooking = async (id) => {
-    try {
-      await API.delete(`/bookings/${id}`);
+  const cancelBooking = async (bookingId) => {
+  const indexes = selectedPassengers[bookingId] || [];
 
-      showAlert('Booking Cancelled', 'success');
+  if (indexes.length === 0) {
+    showAlert('Select passengers to cancel', 'warning');
+    return;
+  }
 
-      fetchBookings();
-    } catch (err) {
-      showAlert(
-        err.response?.data?.message || 'Error cancelling ticket',
-        'danger'
-      );
-    }
-  };
+  try {
+    await API.delete(`/bookings/${bookingId}`, {
+      data: { passengerIndexes: indexes }
+    });
+
+    showAlert('Tickets cancelled successfully', 'success');
+
+    fetchBookings();
+    setSelectedPassengers({});
+
+  } catch (err) {
+    showAlert(err.response?.data?.message || 'Error cancelling', 'danger');
+  }
+};
 
   return (
   <div className="max-w-5xl mx-auto p-6">
@@ -121,14 +147,17 @@ const downloadTicket = (booking) => {
 
             {/*  PASSENGERS */}
             <div className="mb-3">
-              <p className="font-semibold mb-1">Passengers:</p>
+              <p className="font-semibold mb-2">Passengers:</p>
 
               {b.passengers.map((p, index) => (
-                <div
-                  key={index}
-                  className="text-sm text-gray-600 ml-2"
-                >
-                  • {p.name} ({p.age}, {p.gender})
+                <div key={index} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    onChange={() => togglePassenger(b._id, index)}
+                  />
+                  <span>
+                    {p.name} ({p.age}, {p.gender})
+                  </span>
                 </div>
               ))}
             </div>
@@ -138,9 +167,9 @@ const downloadTicket = (booking) => {
 
               <button
                 onClick={() => cancelBooking(b._id)}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+                className="bg-red-500 text-white px-4 py-2 rounded"
               >
-                Cancel
+                Cancel Selected
               </button>
 
               <button
