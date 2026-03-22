@@ -1,11 +1,10 @@
-
 import API from '../services/api';
 import { useEffect, useState } from 'react';
 
 const AdminDashboard = ({ showAlert }) => {
 
-
   const [flights, setFlights] = useState([]);
+  const [cancelDates, setCancelDates] = useState({});
 
   const [form, setForm] = useState({
     flightNumber: '',
@@ -20,6 +19,18 @@ const AdminDashboard = ({ showAlert }) => {
     daysOfWeek: ''
   });
 
+  //  BULK FORM
+  const [bulkForm, setBulkForm] = useState({
+    baseFlightNumber: '',
+    count: '',
+    from: '',
+    to: '',
+    departureTime: '',
+    arrivalTime: '',
+    price: '',
+    seatsAvailable: ''
+  });
+
   const fetchFlights = async () => {
     try {
       const res = await API.get('/flights');
@@ -31,32 +42,24 @@ const AdminDashboard = ({ showAlert }) => {
 
   useEffect(() => {
     fetchFlights();
-    //eslint-disable-next-line
   }, []);
 
   const user = JSON.parse(localStorage.getItem('user'));
 
   if (!user || user.role !== 'admin') {
-    return (
-      <div className="text-center mt-20">
-        <h2 className="text-2xl font-bold text-red-500">
-          Access Denied 🚫
-        </h2>
-      </div>
-    );
+    return <h2 className="text-center mt-20 text-red-500">Access Denied 🚫</h2>;
   }
 
-  //  INPUT CHANGE
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  //  CREATE FLIGHT
+  // CREATE SINGLE
   const createFlight = async (e) => {
     e.preventDefault();
 
     try {
-      const payload = {
+      await API.post('/flights', {
         ...form,
         price: Number(form.price),
         seatsAvailable: Number(form.seatsAvailable),
@@ -64,135 +67,112 @@ const AdminDashboard = ({ showAlert }) => {
           form.scheduleType === 'weekly'
             ? form.daysOfWeek.split(',').map(Number)
             : []
-      };
-
-      await API.post('/flights', payload);
-
-      showAlert('Flight created', 'success');
-
-      // RESET FORM
-      setForm({
-        flightNumber: '',
-        airline: 'Skytix',
-        from: '',
-        to: '',
-        departureTime: '',
-        arrivalTime: '',
-        price: '',
-        seatsAvailable: '',
-        scheduleType: 'daily',
-        daysOfWeek: ''
       });
 
+      showAlert('Flight created', 'success');
       fetchFlights();
 
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Error creating flight', 'danger');
+    } catch {
+      showAlert('Error creating flight', 'danger');
     }
   };
 
-  //  DELETE FLIGHT
+  // BULK CREATE
+  const createBulkFlights = async (e) => {
+    e.preventDefault();
+
+    try {
+      await API.post('/flights/bulk', {
+        ...bulkForm,
+        count: Number(bulkForm.count),
+        price: Number(bulkForm.price),
+        seatsAvailable: Number(bulkForm.seatsAvailable)
+      });
+
+      showAlert('Bulk flights created', 'success');
+      fetchFlights();
+
+    } catch {
+      showAlert('Error creating bulk flights', 'danger');
+    }
+  };
+
   const deleteFlight = async (id) => {
-    try {
-      await API.delete(`/flights/${id}`);
-      showAlert('Flight deleted', 'success');
-      fetchFlights();
-    } catch {
-      showAlert('Error deleting flight', 'danger');
-    }
+    await API.delete(`/flights/${id}`);
+    showAlert('Deleted', 'success');
+    fetchFlights();
   };
 
-  //  CANCEL FLIGHT
-  const cancelFlight = async (id) => {
-    try {
-      await API.put(`/flights/${id}/cancel`);
-      showAlert('Flight cancelled', 'warning');
-      fetchFlights();
-    } catch {
-      showAlert('Error cancelling flight', 'danger');
+  const cancelByDate = async (id) => {
+    const date = cancelDates[id];
+
+    if (!date) {
+      showAlert('Select date first', 'warning');
+      return;
     }
+
+    await API.put(`/flights/${id}/cancel-date`, { date });
+    showAlert('Cancelled for date', 'success');
+    fetchFlights();
   };
 
-  //  UI
   return (
     <div className="max-w-6xl mx-auto p-6">
 
       <h2 className="text-3xl font-bold mb-6">Admin Dashboard</h2>
 
-      {/*  CREATE FLIGHT */}
-      <form onSubmit={createFlight} className="bg-white p-5 rounded shadow mb-6">
+      {/*  BULK CREATE */}
+      <form onSubmit={createBulkFlights} className="bg-white p-4 mb-6 shadow rounded">
+        <h3 className="font-bold mb-3">Bulk Create Flights</h3>
 
-        <h3 className="font-semibold mb-3">Add Flight</h3>
-
-        <div className="grid grid-cols-2 gap-3">
-
-          <input name="flightNumber" placeholder="Flight Number" value={form.flightNumber} onChange={handleChange} className="border p-2" />
-          <input name="from" placeholder="From" value={form.from} onChange={handleChange} className="border p-2" />
-          <input name="to" placeholder="To" value={form.to} onChange={handleChange} className="border p-2" />
-          <input name="departureTime" placeholder="Departure Time (10:00)" value={form.departureTime} onChange={handleChange} className="border p-2" />
-          <input name="arrivalTime" placeholder="Arrival Time (12:00)" value={form.arrivalTime} onChange={handleChange} className="border p-2" />
-          <input name="price" placeholder="Price" value={form.price} onChange={handleChange} className="border p-2" />
-          <input name="seatsAvailable" placeholder="Seats" value={form.seatsAvailable} onChange={handleChange} className="border p-2" />
-
-          <select name="scheduleType" value={form.scheduleType} onChange={handleChange} className="border p-2">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-          </select>
-
-          {form.scheduleType === 'weekly' && (
-            <input
-              name="daysOfWeek"
-              placeholder="Days (e.g. 1,3,5)"
-              value={form.daysOfWeek}
-              onChange={handleChange}
-              className="border p-2 col-span-2"
-            />
-          )}
-
+        <div className="grid grid-cols-2 gap-2">
+          <input placeholder="Base Flight No" onChange={(e)=>setBulkForm({...bulkForm, baseFlightNumber:e.target.value})}/>
+          <input placeholder="Count" onChange={(e)=>setBulkForm({...bulkForm, count:e.target.value})}/>
+          <input placeholder="From" onChange={(e)=>setBulkForm({...bulkForm, from:e.target.value})}/>
+          <input placeholder="To" onChange={(e)=>setBulkForm({...bulkForm, to:e.target.value})}/>
+          <input placeholder="Departure" onChange={(e)=>setBulkForm({...bulkForm, departureTime:e.target.value})}/>
+          <input placeholder="Arrival" onChange={(e)=>setBulkForm({...bulkForm, arrivalTime:e.target.value})}/>
+          <input placeholder="Price" onChange={(e)=>setBulkForm({...bulkForm, price:e.target.value})}/>
+          <input placeholder="Seats" onChange={(e)=>setBulkForm({...bulkForm, seatsAvailable:e.target.value})}/>
         </div>
 
-        <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">
-          Add Flight
+        <button className="mt-3 bg-green-600 text-white px-4 py-2 rounded">
+          Create Bulk Flights
         </button>
-
       </form>
 
-      {/*  FLIGHTS */}
-      <div className="grid gap-4">
+      {/* EXISTING CREATE FORM */}
+      <form onSubmit={createFlight} className="bg-white p-4 mb-6 shadow rounded">
+        <h3>Add Flight</h3>
+        <input name="flightNumber" placeholder="Flight Number" onChange={handleChange}/>
+        <input name="from" placeholder="From" onChange={handleChange}/>
+        <input name="to" placeholder="To" onChange={handleChange}/>
+        <input name="price" placeholder="Price" onChange={handleChange}/>
+        <input name="seatsAvailable" placeholder="Seats" onChange={handleChange}/>
+        <button>Add</button>
+      </form>
 
-        {flights.map((f) => (
-          <div key={f._id} className="bg-white p-4 rounded shadow flex justify-between items-center">
+      {/* FLIGHTS */}
+      {flights.map(f => (
+        <div key={f._id} className="bg-white p-3 mb-2 shadow flex justify-between">
 
-            <div>
-              <h3 className="font-semibold">{f.flightNumber}</h3>
-              <p>{f.from} → {f.to}</p>
-              <p className="text-sm text-gray-500">
-                {f.scheduleType === 'daily'
-                  ? 'Daily'
-                  : `Days: ${f.daysOfWeek.join(',')}`}
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => cancelFlight(f._id)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() => deleteFlight(f._id)}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                Delete
-              </button>
-            </div>
-
+          <div>
+            <h3>{f.flightNumber}</h3>
+            <p>{f.from} → {f.to}</p>
           </div>
-        ))}
 
-      </div>
+          <div>
+            <input
+              type="date"
+              onChange={(e)=>setCancelDates({...cancelDates, [f._id]:e.target.value})}
+            />
+
+            <button onClick={()=>cancelByDate(f._id)}>Cancel Date</button>
+            <button onClick={()=>deleteFlight(f._id)}>Delete</button>
+          </div>
+
+        </div>
+      ))}
 
     </div>
   );
