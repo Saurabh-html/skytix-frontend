@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import API from '../services/api';
 
 const AdminDashboard = ({ showAlert }) => {
@@ -32,24 +32,23 @@ const AdminDashboard = ({ showAlert }) => {
   // =========================
   // FETCH FLIGHTS
   // =========================
-  const fetchFlights = async () => {
-    try {
-      setLoading(true);
-      const res = await API.get('/flights');
-      setFlights(res.data.flights || []);
+const fetchFlights = useCallback(async () => {
+  try {
+    setLoading(true);
+    const res = await API.get('/flights');
+    setFlights(res.data.flights || []);
 
-      // 🔥 UPDATE STATS HERE (FIXED)
-      setStats(prev => ({
-        ...prev,
-        totalFlights: res.data.flights.length
-      }));
+    setStats(prev => ({
+      ...prev,
+      totalFlights: res.data.flights.length
+    }));
 
-    } catch {
-      showAlert('Error fetching flights', 'danger');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch {
+    showAlert('Error fetching flights', 'danger');
+  } finally {
+    setLoading(false);
+  }
+}, [showAlert]);
 
   // =========================
   // FETCH BOOKINGS (TEMP FIX)
@@ -80,7 +79,7 @@ const AdminDashboard = ({ showAlert }) => {
   useEffect(() => {
     fetchFlights();
     fetchBookingsStats();
-  }, []);
+  }, [fetchFlights]);
 
   // =========================
   // CREATE FLIGHT
