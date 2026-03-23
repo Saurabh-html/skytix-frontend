@@ -8,6 +8,8 @@ const Login = ({ showAlert }) => {
     password: ''
   });
 
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -18,10 +20,12 @@ const Login = ({ showAlert }) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
+
       const res = await API.post('/users/login', form);
 
       localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data)); 
+      localStorage.setItem('user', JSON.stringify(res.data));
 
       showAlert('Login successful', 'success');
 
@@ -29,6 +33,8 @@ const Login = ({ showAlert }) => {
 
     } catch (err) {
       showAlert(err.response?.data?.message || 'Error', 'danger');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,16 +76,20 @@ const Login = ({ showAlert }) => {
             <Link to="/forgot-password">Forgot Password?</Link>
           </div>
 
-          <button style={{
-            width: '100%',
-            marginTop: '15px',
-            padding: '10px',
-            background: '#007bff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px'
-          }}>
-            Login
+          <button
+            disabled={loading}
+            style={{
+              width: '100%',
+              marginTop: '15px',
+              padding: '10px',
+              background: '#007bff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

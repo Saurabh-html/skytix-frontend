@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -7,12 +9,13 @@ import Flights from './pages/Flights';
 import MyBookings from './pages/MyBookings';
 import ForgotPassword from './pages/ForgotPassword';
 import About from './pages/About';
-import { useState } from 'react';
-import Alert from './components/Alert';
 import AdminDashboard from './pages/AdminDashboard';
 
+import { useState } from 'react';
+import Alert from './components/Alert';
 
-//  PRIVATE ROUTE COMPONENT
+
+// 🔐 PRIVATE ROUTE
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
@@ -35,19 +38,19 @@ const Layout = () => {
 
   return (
     <>
-      {/*  Navbar control */}
+      {/* NAVBAR */}
       {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
 
       <Alert alert={alert} />
 
       <Routes>
 
-        {/* PUBLIC ROUTES */}
+        {/* PUBLIC */}
         <Route path="/login" element={<Login showAlert={showAlert} />} />
         <Route path="/register" element={<Register showAlert={showAlert} />} />
         <Route path="/forgot-password" element={<ForgotPassword showAlert={showAlert} />} />
 
-        {/*  PROTECTED ROUTES */}
+        {/* PRIVATE */}
         <Route path="/" element={
           <PrivateRoute>
             <Home showAlert={showAlert} />
@@ -72,11 +75,15 @@ const Layout = () => {
           </PrivateRoute>
         } />
 
+        {/* 🔥 ADMIN (SECURE) */}
         <Route path="/admin" element={
-          <PrivateRoute>
+          <ProtectedAdminRoute>
             <AdminDashboard showAlert={showAlert} />
-          </PrivateRoute>
+          </ProtectedAdminRoute>
         } />
+
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>
     </>
