@@ -32,10 +32,17 @@ const AdminDashboard = ({ showAlert }) => {
     daysOfWeek: []
   });
 
-  // 🔐 ACCESS CONTROL
-  if (!user || user.role !== 'admin') {
-    return <h2 className="text-center mt-10">Access Denied</h2>;
-  }
+// ✅ HOOKS FIRST (NO CONDITIONS ABOVE)
+useEffect(() => {
+  
+  fetchFlights();
+  //eslint-disable-next-line
+}, []);
+
+// ✅ NOW CONDITION
+if (!user || user.role !== 'admin') {
+  return <h2 className="text-center mt-10">Access Denied</h2>;
+}
 
   // 🔄 FETCH FLIGHTS
   const fetchFlights = async () => {
@@ -46,10 +53,6 @@ const AdminDashboard = ({ showAlert }) => {
       showAlert('Error fetching flights', 'danger');
     }
   };
-
-  useEffect(() => {
-    fetchFlights();
-  }, []);
 
   // 🔁 HANDLE CHANGE
   const handleChange = (e, isBulk = false) => {
