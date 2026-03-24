@@ -39,7 +39,7 @@ const Layout = () => {
   return (
     <>
       {/* NAVBAR */}
-      {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
+      {!hideNavbarRoutes.includes(location.pathname) && <Navbar showAlert={showAlert}/>}
 
       <Alert alert={alert} />
 

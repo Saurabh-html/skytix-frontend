@@ -12,16 +12,23 @@ const AdminDashboard = ({ showAlert }) => {
     totalRevenue: 0
   });
 
+  // 🔥 UPDATED FORM (CLASS SUPPORT)
   const [form, setForm] = useState({
     flightNumber: '',
     from: '',
     to: '',
     departureTime: '',
     arrivalTime: '',
-    price: '',
-    seatsAvailable: '',
     scheduleType: 'daily',
-    daysOfWeek: []
+
+    // NEW
+    economyPrice: '',
+    businessPrice: '',
+    firstPrice: '',
+
+    economySeats: '',
+    businessSeats: '',
+    firstSeats: ''
   });
 
   const [bulk, setBulk] = useState({
@@ -32,30 +39,31 @@ const AdminDashboard = ({ showAlert }) => {
   // =========================
   // FETCH FLIGHTS
   // =========================
-const fetchFlights = useCallback(async () => {
-  try {
-    setLoading(true);
-    const res = await API.get('/flights');
-    setFlights(res.data.flights || []);
+  const fetchFlights = useCallback(async () => {
+    try {
+      setLoading(true);
 
-    setStats(prev => ({
-      ...prev,
-      totalFlights: res.data.flights.length
-    }));
+      const res = await API.get('/flights');
+      setFlights(res.data.flights || []);
 
-  } catch {
-    showAlert('Error fetching flights', 'danger');
-  } finally {
-    setLoading(false);
-  }
-}, [showAlert]);
+      setStats(prev => ({
+        ...prev,
+        totalFlights: res.data.flights.length
+      }));
+
+    } catch {
+      showAlert('Error fetching flights', 'danger');
+    } finally {
+      setLoading(false);
+    }
+  }, [showAlert]);
 
   // =========================
-  // FETCH BOOKINGS (TEMP FIX)
+  // FETCH BOOKINGS
   // =========================
   const fetchBookingsStats = async () => {
     try {
-      const res = await API.get('/bookings/stats'); // until admin API built
+      const res = await API.get('/bookings/stats');
 
       const bookings = res.data.bookings || [];
 
@@ -73,9 +81,6 @@ const fetchFlights = useCallback(async () => {
     }
   };
 
-  // =========================
-  // INITIAL LOAD
-  // =========================
   useEffect(() => {
     fetchFlights();
     fetchBookingsStats();
@@ -86,9 +91,31 @@ const fetchFlights = useCallback(async () => {
   // =========================
   const createFlight = async () => {
     try {
-      await API.post('/flights', form);
+      await API.post('/flights', {
+        flightNumber: form.flightNumber,
+        from: form.from,
+        to: form.to,
+        departureTime: form.departureTime,
+        arrivalTime: form.arrivalTime,
+        scheduleType: form.scheduleType,
+
+        // 🔥 CLASS CONFIG
+        priceConfig: {
+          economy: Number(form.economyPrice),
+          business: Number(form.businessPrice),
+          first: Number(form.firstPrice)
+        },
+
+        seatConfig: {
+          economy: Number(form.economySeats),
+          business: Number(form.businessSeats),
+          first: Number(form.firstSeats)
+        }
+      });
+
       showAlert('Flight created', 'success');
       fetchFlights();
+
     } catch (err) {
       showAlert(err.response?.data?.message || 'Error', 'danger');
     }
@@ -100,8 +127,25 @@ const fetchFlights = useCallback(async () => {
   const createBulk = async () => {
     try {
       await API.post('/flights/bulk', {
-        ...form,
-        ...bulk
+        ...bulk,
+
+        from: form.from,
+        to: form.to,
+        departureTime: form.departureTime,
+        arrivalTime: form.arrivalTime,
+        scheduleType: form.scheduleType,
+
+        priceConfig: {
+          economy: Number(form.economyPrice),
+          business: Number(form.businessPrice),
+          first: Number(form.firstPrice)
+        },
+
+        seatConfig: {
+          economy: Number(form.economySeats),
+          business: Number(form.businessSeats),
+          first: Number(form.firstSeats)
+        }
       });
 
       showAlert('Bulk flights created', 'success');
@@ -141,38 +185,34 @@ const fetchFlights = useCallback(async () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
 
-      {/* ========================= */}
-      {/* 📊 ANALYTICS */}
-      {/* ========================= */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      {/* 📊 STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
         <div className="bg-white p-4 shadow rounded text-center">
-          <h3 className="text-gray-500">Flights</h3>
-          <p className="text-2xl font-bold">{stats.totalFlights}</p>
+          <h3>Flights</h3>
+          <p className="text-2xl">{stats.totalFlights}</p>
         </div>
 
         <div className="bg-white p-4 shadow rounded text-center">
-          <h3 className="text-gray-500">Bookings</h3>
-          <p className="text-2xl font-bold">{stats.totalBookings}</p>
+          <h3>Bookings</h3>
+          <p className="text-2xl">{stats.totalBookings}</p>
         </div>
 
         <div className="bg-white p-4 shadow rounded text-center">
-          <h3 className="text-gray-500">Revenue</h3>
-          <p className="text-2xl font-bold">₹ {stats.totalRevenue}</p>
+          <h3>Revenue</h3>
+          <p className="text-2xl">₹ {stats.totalRevenue}</p>
         </div>
 
       </div>
 
-      {/* ========================= */}
-      {/* ✈️ CREATE FORM */}
-      {/* ========================= */}
+      {/* ✈️ FORM */}
       <div className="bg-white p-5 rounded shadow mb-6">
 
         <h2 className="text-xl font-bold mb-4">Add Flight</h2>
 
-        <div className="grid md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
           <input placeholder="Flight No" onChange={(e)=>setForm({...form, flightNumber:e.target.value})} className="border p-2"/>
           <input placeholder="From" onChange={(e)=>setForm({...form, from:e.target.value})} className="border p-2"/>
@@ -181,8 +221,15 @@ const fetchFlights = useCallback(async () => {
           <input placeholder="Departure" onChange={(e)=>setForm({...form, departureTime:e.target.value})} className="border p-2"/>
           <input placeholder="Arrival" onChange={(e)=>setForm({...form, arrivalTime:e.target.value})} className="border p-2"/>
 
-          <input placeholder="Price" onChange={(e)=>setForm({...form, price:e.target.value})} className="border p-2"/>
-          <input placeholder="Seats" onChange={(e)=>setForm({...form, seatsAvailable:e.target.value})} className="border p-2"/>
+          {/* 🔥 CLASS PRICES */}
+          <input placeholder="Economy Price" onChange={(e)=>setForm({...form, economyPrice:e.target.value})} className="border p-2"/>
+          <input placeholder="Business Price" onChange={(e)=>setForm({...form, businessPrice:e.target.value})} className="border p-2"/>
+          <input placeholder="First Price" onChange={(e)=>setForm({...form, firstPrice:e.target.value})} className="border p-2"/>
+
+          {/* 🔥 CLASS SEATS */}
+          <input placeholder="Economy Seats" onChange={(e)=>setForm({...form, economySeats:e.target.value})} className="border p-2"/>
+          <input placeholder="Business Seats" onChange={(e)=>setForm({...form, businessSeats:e.target.value})} className="border p-2"/>
+          <input placeholder="First Seats" onChange={(e)=>setForm({...form, firstSeats:e.target.value})} className="border p-2"/>
 
           <select onChange={(e)=>setForm({...form, scheduleType:e.target.value})} className="border p-2">
             <option value="daily">Daily</option>
@@ -199,55 +246,41 @@ const fetchFlights = useCallback(async () => {
 
         </div>
 
-        <div className="flex gap-3 mt-4">
-          <button onClick={createFlight} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+          <button onClick={createFlight} className="bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto">
             Create
           </button>
 
-          <button onClick={createBulk} className="bg-purple-600 text-white px-4 py-2 rounded">
+          <button onClick={createBulk} className="bg-purple-600 text-white px-4 py-2 rounded w-full sm:w-auto">
             Bulk Create
           </button>
         </div>
 
       </div>
 
-      {/* ========================= */}
-      {/* 📋 FLIGHTS LIST */}
-      {/* ========================= */}
-      {loading ? (
-        <p className="text-center">Loading...</p>
-      ) : (
+      {/* LIST */}
+      {loading ? <p>Loading...</p> : (
         <div className="grid gap-4">
-
           {flights.map(f => (
-            <div key={f._id} className="bg-white p-4 shadow rounded flex justify-between items-center">
+            <div key={f._id} className="bg-white p-4 shadow rounded flex flex-col sm:flex-row justify-between items-center gap-2">
 
               <div>
-                <h3 className="font-bold">{f.flightNumber}</h3>
+                <h3>{f.flightNumber}</h3>
                 <p>{f.from} → {f.to}</p>
               </div>
 
               <div className="flex gap-2">
-
-                <button
-                  onClick={() => cancelDate(f._id)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded"
-                >
+                <button onClick={()=>cancelDate(f._id)} className="bg-yellow-500 text-white px-3 py-1 rounded">
                   Cancel Date
                 </button>
 
-                <button
-                  onClick={() => deleteFlight(f._id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
+                <button onClick={()=>deleteFlight(f._id)} className="bg-red-500 text-white px-3 py-1 rounded">
                   Delete
                 </button>
-
               </div>
 
             </div>
           ))}
-
         </div>
       )}
 

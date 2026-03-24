@@ -68,6 +68,7 @@ const MyBookings = ({ showAlert }) => {
     }
   };
 
+  // 🔥 UPDATED PDF (SEAT ADDED)
   const downloadTicket = (b) => {
     const doc = new jsPDF();
 
@@ -78,16 +79,21 @@ const MyBookings = ({ showAlert }) => {
     doc.text(`Flight: ${b.flight.flightNumber}`, 20, 40);
     doc.text(`${b.flight.from} → ${b.flight.to}`, 20, 50);
     doc.text(`Date: ${new Date(b.date).toLocaleDateString()}`, 20, 60);
+    doc.text(`Class: ${b.seatClass?.toUpperCase()}`, 20, 70);
 
     b.passengers.forEach((p, i) => {
-      doc.text(`${p.name} | ${p.age} | ${p.gender}`, 20, 80 + i * 10);
+      doc.text(
+        `${p.name} | ${p.age} | ${p.gender} | Seat: ${p.seat || '-'}`,
+        20,
+        80 + i * 10
+      );
     });
 
     doc.save(`ticket-${b._id}.pdf`);
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6">
 
       <h2 className="text-3xl font-bold mb-6">My Bookings</h2>
 
@@ -110,7 +116,7 @@ const MyBookings = ({ showAlert }) => {
           return (
             <div key={b._id} className="bg-white p-5 rounded-lg shadow-md">
 
-              <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
                 <h3 className="font-bold text-blue-600">
                   {b.flight.flightNumber}
                 </h3>
@@ -124,12 +130,19 @@ const MyBookings = ({ showAlert }) => {
                 {b.flight.from} → {b.flight.to}
               </p>
 
+              <p className="text-sm text-gray-600 mb-2">
+                Class: {b.seatClass?.toUpperCase()}
+              </p>
+
               {/* PASSENGERS */}
               <div className="mb-3">
-                <p className="font-semibold">Passengers</p>
+                <p className="font-semibold mb-1">Passengers</p>
 
                 {b.passengers.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded mb-1"
+                  >
 
                     {isCancelMode && (
                       <input
@@ -138,7 +151,15 @@ const MyBookings = ({ showAlert }) => {
                       />
                     )}
 
-                    {p.name} ({p.age}, {p.gender})
+                    <span>
+                      {p.name} ({p.age}, {p.gender})
+                    </span>
+
+                    {/* 🔥 NEW SEAT DISPLAY */}
+                    <span className="ml-auto text-blue-600 font-medium">
+                      Seat: {p.seat || '-'}
+                    </span>
+
                   </div>
                 ))}
               </div>
@@ -147,7 +168,7 @@ const MyBookings = ({ showAlert }) => {
                 Total: ₹ {b.totalPrice}
               </p>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
 
                 {!isCancelMode ? (
                   <>
@@ -155,14 +176,14 @@ const MyBookings = ({ showAlert }) => {
                       onClick={() =>
                         setCancelMode(prev => ({ ...prev, [b._id]: true }))
                       }
-                      className="bg-red-500 text-white px-3 py-1 rounded"
+                      className="bg-red-500 text-white px-3 py-1 rounded w-full sm:w-auto"
                     >
                       Cancel Ticket
                     </button>
 
                     <button
                       onClick={() => downloadTicket(b)}
-                      className="bg-green-600 text-white px-3 py-1 rounded"
+                      className="bg-green-600 text-white px-3 py-1 rounded w-full sm:w-auto"
                     >
                       Download Ticket
                     </button>
@@ -181,7 +202,7 @@ const MyBookings = ({ showAlert }) => {
                       onClick={() =>
                         setCancelMode(prev => ({ ...prev, [b._id]: false }))
                       }
-                      className="bg-gray-400 text-white px-3 py-1 rounded"
+                      className="bg-gray-400 text-white px-3 py-1 rounded w-full sm:w-auto"
                     >
                       Back
                     </button>

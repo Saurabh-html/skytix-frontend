@@ -38,21 +38,21 @@ const Home = () => {
       {/* FEATURES */}
       <div className="max-w-5xl mx-auto px-6 pb-16 grid md:grid-cols-3 gap-6">
 
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
           <h3 className="font-semibold text-lg mb-2">Smart Search</h3>
           <p className="text-gray-500 text-sm">
             Find flights instantly with date-based availability and real-time seat updates.
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
           <h3 className="font-semibold text-lg mb-2">Easy Booking</h3>
           <p className="text-gray-500 text-sm">
             Book multiple passengers with smooth experience just like real airline apps.
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
           <h3 className="font-semibold text-lg mb-2">Flexible Cancellation</h3>
           <p className="text-gray-500 text-sm">
             Cancel individual tickets easily and manage bookings effortlessly.
