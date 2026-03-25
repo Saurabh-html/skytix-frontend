@@ -97,63 +97,63 @@ const AdminDashboard = ({ showAlert }) => {
   };
 
 return (
-  <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+  <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-gray-100 text-gray-800 min-h-screen">
 
-    <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
+    <h2 className="text-3xl font-bold mb-6 text-gray-800">
       Admin Dashboard
     </h2>
 
     <form
       onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-800 p-5 rounded shadow mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 border dark:border-gray-700"
+      className="bg-white p-5 rounded shadow mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 border"
     >
 
       <input placeholder="Flight Number"
         value={form.flightNumber}
         onChange={e => setForm({ ...form, flightNumber: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <input placeholder="From"
         value={form.from}
         onChange={e => setForm({ ...form, from: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <input placeholder="To"
         value={form.to}
         onChange={e => setForm({ ...form, to: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <input placeholder="Departure Time"
         value={form.departureTime}
         onChange={e => setForm({ ...form, departureTime: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <input placeholder="Arrival Time"
         value={form.arrivalTime}
         onChange={e => setForm({ ...form, arrivalTime: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <input placeholder="Price"
         value={form.price}
         onChange={e => setForm({ ...form, price: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <input placeholder="Seats"
         value={form.seatsAvailable}
         onChange={e => setForm({ ...form, seatsAvailable: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        className="border p-2 rounded"
       />
 
       <select
         value={form.scheduleType}
         onChange={e => setForm({ ...form, scheduleType: e.target.value })}
-        className="border p-2 rounded dark:bg-gray-700 dark:text-white"
+        className="border p-2 rounded"
       >
         <option value="daily">Daily</option>
         <option value="weekly">Weekly</option>
@@ -169,7 +169,7 @@ return (
 
     {/* LIST */}
     {loading && (
-      <p className="text-center text-gray-500 dark:text-gray-400">
+      <p className="text-center text-gray-500">
         Loading...
       </p>
     )}
@@ -178,19 +178,19 @@ return (
 
       {flights.map(f => (
         <div key={f._id}
-          className="bg-white dark:bg-gray-800 p-4 rounded shadow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border dark:border-gray-700"
+          className="bg-white p-4 rounded shadow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border"
         >
 
           <div>
-            <h3 className="font-bold text-blue-600 dark:text-blue-400">
+            <h3 className="font-bold text-blue-600">
               {f.flightNumber}
             </h3>
 
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-gray-600">
               {f.from} → {f.to}
             </p>
 
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500">
               ₹ {f.price}
             </p>
           </div>
@@ -198,12 +198,12 @@ return (
           <div className="flex gap-3">
 
             <FaEdit
-              className="cursor-pointer text-blue-500 hover:text-blue-700 dark:hover:text-blue-400"
+              className="cursor-pointer text-blue-500 hover:text-blue-700"
               onClick={() => handleEdit(f)}
             />
 
             <FaTrash
-              className="cursor-pointer text-red-500 hover:text-red-700 dark:hover:text-red-400"
+              className="cursor-pointer text-red-500 hover:text-red-700"
               onClick={() => handleDelete(f._id)}
             />
 

@@ -1,9 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import ProfileSidebar from './ProfileSidebar';
-import { FaMoon, FaSun } from 'react-icons/fa';
 
-const Navbar = ({ showAlert, darkMode, setDarkMode }) => {
+const Navbar = ({ showAlert }) => {
   const navigate = useNavigate();
 
   const user = (() => {
@@ -18,7 +17,7 @@ const Navbar = ({ showAlert, darkMode, setDarkMode }) => {
 
   return (
     <>
-      <nav className="bg-white dark:bg-gray-900 shadow-md px-4 sm:px-6 py-3 flex justify-between items-center max-w-6xl mx-auto">
+      <nav className="bg-white shadow-md px-4 sm:px-6 py-3 flex justify-between items-center max-w-6xl mx-auto">
 
         <h2
           onClick={() => navigate('/')}
@@ -27,7 +26,7 @@ const Navbar = ({ showAlert, darkMode, setDarkMode }) => {
           Skytix
         </h2>
 
-        <div className="flex items-center gap-3 sm:gap-4 text-gray-700 dark:text-gray-200 text-sm sm:text-base">
+        <div className="flex items-center gap-3 sm:gap-4 text-gray-700 text-sm sm:text-base">
 
           <Link to="/" className="no-underline hover:text-blue-600">Home</Link>
           <Link to="/flights" className="no-underline hover:text-blue-600">Flights</Link>
@@ -37,13 +36,6 @@ const Navbar = ({ showAlert, darkMode, setDarkMode }) => {
           {user?.role === 'admin' && (
             <Link to="/admin" className="no-underline hover:text-blue-600">Admin</Link>
           )}
-
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="border px-2 py-1 rounded"
-          >
-            {darkMode ? <FaSun /> : <FaMoon />}
-          </button>
 
           {user && (
             <button

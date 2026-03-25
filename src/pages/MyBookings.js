@@ -97,20 +97,20 @@ const MyBookings = ({ showAlert }) => {
   };
 
   return (
-  <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+  <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 text-gray-800 min-h-screen">
 
-    <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
+    <h2 className="text-3xl font-bold mb-6 text-gray-800">
       My Bookings
     </h2>
 
     {loading && (
-      <p className="text-center text-gray-500 dark:text-gray-400">
+      <p className="text-center text-gray-500">
         Loading bookings...
       </p>
     )}
 
     {!loading && bookings.length === 0 && (
-      <div className="text-center text-gray-500 dark:text-gray-400 mt-10">
+      <div className="text-center text-gray-500 mt-10">
         <p className="text-lg font-semibold">No bookings yet</p>
         <p>Book your first flight</p>
       </div>
@@ -122,36 +122,36 @@ const MyBookings = ({ showAlert }) => {
         const isCancelMode = cancelMode[b._id];
 
         return (
-          <div key={b._id} className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-md border dark:border-gray-700">
+          <div key={b._id} className="bg-white p-5 rounded-lg shadow-md border">
 
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
-              <h3 className="font-bold text-blue-600 dark:text-blue-400">
+              <h3 className="font-bold text-blue-600">
                 {b.flight.flightNumber}
               </h3>
 
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500">
                 {new Date(b.date).toLocaleDateString()}
               </span>
             </div>
 
-            <p className="mb-2 text-gray-700 dark:text-gray-300">
+            <p className="mb-2 text-gray-700">
               {b.flight.from} → {b.flight.to}
             </p>
 
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+            <p className="text-sm text-gray-600 mb-2">
               Class: {b.seatClass?.toUpperCase()}
             </p>
 
             {/* PASSENGERS */}
             <div className="mb-3">
-              <p className="font-semibold mb-1 text-gray-800 dark:text-white">
+              <p className="font-semibold mb-1 text-gray-800">
                 Passengers
               </p>
 
               {b.passengers.map((p, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded mb-1 border dark:border-gray-600"
+                  className="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded mb-1 border"
                 >
 
                   {isCancelMode && (
@@ -162,11 +162,11 @@ const MyBookings = ({ showAlert }) => {
                     />
                   )}
 
-                  <span className="text-gray-800 dark:text-gray-200">
+                  <span className="text-gray-800">
                     {p.name} ({p.age}, {p.gender})
                   </span>
 
-                  <span className="ml-auto text-blue-600 dark:text-blue-400 font-medium">
+                  <span className="ml-auto text-blue-600 font-medium">
                     Seat: {p.seat || '-'}
                   </span>
 
@@ -174,7 +174,7 @@ const MyBookings = ({ showAlert }) => {
               ))}
             </div>
 
-            <p className="font-bold mb-3 text-gray-800 dark:text-white">
+            <p className="font-bold mb-3 text-gray-800">
               Total: ₹ {b.totalPrice}
             </p>
 

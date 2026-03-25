@@ -11,7 +11,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Alert from './components/Alert';
 
 const PrivateRoute = ({ children }) => {
@@ -40,23 +40,10 @@ const Layout = () => {
     setTimeout(() => setAlert(null), 1500);
   };
 
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('theme') === 'dark'
-  );
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
-
   return (
     <>
       {!hideNavbarRoutes.includes(location.pathname) && (
-        <Navbar
-          showAlert={showAlert}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
+        <Navbar showAlert={showAlert} />
       )}
 
       <Alert alert={alert} />

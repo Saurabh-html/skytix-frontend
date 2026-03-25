@@ -205,11 +205,11 @@ const Flights = ({ showAlert }) => {
     }
   };
 
-  return (
-  <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+return (
+  <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 text-gray-800 min-h-screen">
 
     {/* SEARCH */}
-    <div className="bg-white dark:bg-gray-800 p-4 rounded shadow mb-6 border dark:border-gray-700">
+    <div className="bg-white p-4 rounded shadow mb-6 border">
       <div className="flex flex-col sm:flex-row gap-3">
 
         <div className="relative w-full">
@@ -218,11 +218,11 @@ const Flights = ({ showAlert }) => {
             onChange={(e)=>handleSearchInput(e.target.value,'from')}
             onFocus={()=>setActiveField('from')}
             placeholder="From"
-            className="border p-2 w-full rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            className="border p-2 w-full rounded"
           />
 
           {activeField==='from' && filteredAirports.length>0 && (
-            <div className="absolute bg-white dark:bg-gray-800 border dark:border-gray-700 w-full max-h-40 overflow-y-auto z-10 rounded">
+            <div className="absolute bg-white border w-full max-h-40 overflow-y-auto z-10 rounded">
               {filteredAirports.map((a,i)=>(
                 <div key={i}
                   onClick={()=>{
@@ -230,7 +230,7 @@ const Flights = ({ showAlert }) => {
                     setFilteredAirports([]);
                     setActiveField(null);
                   }}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                  className="p-2 hover:bg-gray-200 cursor-pointer">
                   {a.city}
                 </div>
               ))}
@@ -244,11 +244,11 @@ const Flights = ({ showAlert }) => {
             onChange={(e)=>handleSearchInput(e.target.value,'to')}
             onFocus={()=>setActiveField('to')}
             placeholder="To"
-            className="border p-2 w-full rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            className="border p-2 w-full rounded"
           />
 
           {activeField==='to' && filteredAirports.length>0 && (
-            <div className="absolute bg-white dark:bg-gray-800 border dark:border-gray-700 w-full max-h-40 overflow-y-auto z-10 rounded">
+            <div className="absolute bg-white border w-full max-h-40 overflow-y-auto z-10 rounded">
               {filteredAirports.map((a,i)=>(
                 <div key={i}
                   onClick={()=>{
@@ -256,7 +256,7 @@ const Flights = ({ showAlert }) => {
                     setFilteredAirports([]);
                     setActiveField(null);
                   }}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                  className="p-2 hover:bg-gray-200 cursor-pointer">
                   {a.city}
                 </div>
               ))}
@@ -270,7 +270,7 @@ const Flights = ({ showAlert }) => {
           min={formatDate(today)}
           max={formatDate(maxDate)}
           onChange={(e)=>setDate(e.target.value)}
-          className="border p-2 w-full rounded dark:bg-gray-700 dark:text-white"
+          className="border p-2 w-full rounded"
         />
 
         <button
@@ -283,21 +283,21 @@ const Flights = ({ showAlert }) => {
       </div>
     </div>
 
-    {loading && <p className="text-center text-gray-500 dark:text-gray-400">Searching...</p>}
+    {loading && <p className="text-center text-gray-500">Searching...</p>}
 
     {searched && flights.length===0 && (
-      <p className="text-center text-gray-500 dark:text-gray-400">No flights available</p>
+      <p className="text-center text-gray-500">No flights available</p>
     )}
 
     {/* FLIGHTS */}
     <div className="grid gap-4 md:grid-cols-2">
       {flights.map(f=>(
-        <div key={f._id} className="bg-white dark:bg-gray-800 p-4 shadow rounded border dark:border-gray-700">
+        <div key={f._id} className="bg-white p-4 shadow rounded border">
 
-          <h3 className="font-bold text-blue-600 dark:text-blue-400">{f.flightNumber}</h3>
-          <p className="text-gray-700 dark:text-gray-300">{f.from} → {f.to}</p>
+          <h3 className="font-bold text-blue-600">{f.flightNumber}</h3>
+          <p className="text-gray-700">{f.from} → {f.to}</p>
 
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600">
             E ₹{f.prices?.economy} | B ₹{f.prices?.business} | F ₹{f.prices?.first}
           </p>
 
@@ -316,9 +316,9 @@ const Flights = ({ showAlert }) => {
     {selectedFlight && (
       <div className="bg-black/50 fixed inset-0 flex justify-center items-center z-50">
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto border dark:border-gray-700">
+        <div className="bg-white p-5 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto border">
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded w-full max-w-md relative border dark:border-gray-700">
+          <div className="bg-white p-4 rounded w-full max-w-md relative border">
 
             <FaTimes
               className="absolute top-2 right-2 cursor-pointer text-red-500"
@@ -328,7 +328,7 @@ const Flights = ({ showAlert }) => {
             <select
               value={seatClass}
               onChange={(e)=>setSeatClass(e.target.value)}
-              className="border p-2 w-full mb-3 rounded dark:bg-gray-700 dark:text-white"
+              className="border p-2 w-full mb-3 rounded"
             >
               <option value="economy">Economy</option>
               <option value="business">Business</option>
@@ -338,28 +338,28 @@ const Flights = ({ showAlert }) => {
             {passengers.map((p,i)=>(
               <div key={i}
                 onClick={()=>setActivePassengerIndex(i)}
-                className={`mb-3 border p-2 cursor-pointer rounded dark:border-gray-600 ${
+                className={`mb-3 border p-2 cursor-pointer rounded ${
                   activePassengerIndex===i?'border-blue-500':''}`}>
 
-                <input className="border p-2 w-full mb-1 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                <input className="border p-2 w-full mb-1 rounded"
                   placeholder="Name"
                   onChange={(e)=>handlePassengerChange(i,'name',e.target.value)}
                 />
 
                 <input type="number"
                   placeholder="Age"
-                  className="border p-2 w-full mb-1 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                  className="border p-2 w-full mb-1 rounded"
                   onChange={(e)=>handlePassengerChange(i,'age',e.target.value)}
                 />
 
-                <select className="border p-2 w-full mb-2 rounded dark:bg-gray-700 dark:text-white"
+                <select className="border p-2 w-full mb-2 rounded"
                   onChange={(e)=>handlePassengerChange(i,'gender',e.target.value)}>
                   <option>Gender</option>
                   <option>Male</option>
                   <option>Female</option>
                 </select>
 
-                <p className="text-gray-600 dark:text-gray-300">Seat: {p.seat || 'Not selected'}</p>
+                <p className="text-gray-600">Seat: {p.seat || 'Not selected'}</p>
 
                 {passengers.length>1 && (
                   <button
@@ -381,7 +381,7 @@ const Flights = ({ showAlert }) => {
                   className={`p-2 border rounded ${
                     selectedSeats.includes(s)
                       ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 dark:text-white'
+                      : 'bg-gray-200'
                   }`}>
                   {s}
                 </button>
@@ -407,20 +407,20 @@ const Flights = ({ showAlert }) => {
     {showPayment && (
       <div className="bg-black/50 fixed inset-0 flex justify-center items-center z-50">
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto border dark:border-gray-700">
+        <div className="bg-white p-5 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto border">
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded w-full max-w-sm relative border dark:border-gray-700">
+          <div className="bg-white p-4 rounded w-full max-w-sm relative border">
 
             <FaTimes
               className="absolute top-2 right-2 cursor-pointer text-red-500"
               onClick={()=>setShowPayment(false)}
             />
 
-            <h2 className="font-bold mb-3 text-gray-800 dark:text-white">Payment</h2>
+            <h2 className="font-bold mb-3 text-gray-800">Payment</h2>
 
-            <input placeholder="Card Number" className="border p-2 w-full mb-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"/>
-            <input placeholder="Expiry" className="border p-2 w-full mb-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"/>
-            <input placeholder="CVV" className="border p-2 w-full mb-2 rounded dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"/>
+            <input placeholder="Card Number" className="border p-2 w-full mb-2 rounded"/>
+            <input placeholder="Expiry" className="border p-2 w-full mb-2 rounded"/>
+            <input placeholder="CVV" className="border p-2 w-full mb-2 rounded"/>
 
             <button
               onClick={handlePayment}
