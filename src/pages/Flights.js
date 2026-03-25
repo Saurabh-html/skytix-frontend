@@ -206,10 +206,10 @@ const Flights = ({ showAlert }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
 
       {/* SEARCH */}
-      <div className="bg-white p-4 rounded shadow mb-6">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded shadow mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
 
           <div className="relative w-full">
@@ -222,7 +222,7 @@ const Flights = ({ showAlert }) => {
             />
 
             {activeField==='from' && filteredAirports.length>0 && (
-              <div className="absolute bg-white border w-full max-h-40 overflow-y-auto z-10">
+              <div className="absolute bg-white dark:bg-gray-800 border w-full max-h-40 overflow-y-auto z-10">
                 {filteredAirports.map((a,i)=>(
                   <div key={i}
                     onClick={()=>{
@@ -248,7 +248,7 @@ const Flights = ({ showAlert }) => {
             />
 
             {activeField==='to' && filteredAirports.length>0 && (
-              <div className="absolute bg-white border w-full max-h-40 overflow-y-auto z-10">
+              <div className="absolute bg-white dark:bg-gray-800 border w-full max-h-40 overflow-y-auto z-10">
                 {filteredAirports.map((a,i)=>(
                   <div key={i}
                     onClick={()=>{
@@ -286,13 +286,13 @@ const Flights = ({ showAlert }) => {
       {loading && <p className="text-center">Searching...</p>}
 
       {searched && flights.length===0 && (
-        <p className="text-center text-gray-500">No flights available</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">No flights available</p>
       )}
 
       {/* FLIGHTS */}
       <div className="grid gap-4 md:grid-cols-2">
         {flights.map(f=>(
-          <div key={f._id} className="bg-white p-4 shadow rounded">
+          <div key={f._id} className="bg-white dark:bg-gray-800 p-4 shadow rounded">
 
             <h3 className="font-bold text-blue-600">{f.flightNumber}</h3>
             <p>{f.from} → {f.to}</p>
@@ -314,9 +314,9 @@ const Flights = ({ showAlert }) => {
 
       {/* BOOKING MODAL */}
       {selectedFlight && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-3">
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
-          <div className="bg-white p-4 rounded w-full max-w-md relative">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded w-full max-w-md relative">
 
             <FaTimes
               className="absolute top-2 right-2 cursor-pointer text-red-500"
@@ -401,9 +401,9 @@ const Flights = ({ showAlert }) => {
 
       {/* PAYMENT */}
       {showPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
-          <div className="bg-white p-4 rounded w-full max-w-sm relative">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded w-full max-w-sm relative">
 
             <FaTimes
               className="absolute top-2 right-2 cursor-pointer text-red-500"

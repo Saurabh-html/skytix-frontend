@@ -62,7 +62,7 @@ const MyBookings = ({ showAlert }) => {
 
       showAlert('Cancelled successfully', 'success');
 
-      fetchBookings();
+      await fetchBookings();
       setCancelMode({});
       setSelectedPassengers({});
 
@@ -97,12 +97,12 @@ const MyBookings = ({ showAlert }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
 
       <h2 className="text-3xl font-bold mb-6">My Bookings</h2>
 
       {loading && (
-        <p className="text-center text-gray-500">Loading bookings...</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">Loading bookings...</p>
       )}
 
       {!loading && bookings.length === 0 && (
@@ -125,7 +125,7 @@ const MyBookings = ({ showAlert }) => {
                   {b.flight.flightNumber}
                 </h3>
 
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {new Date(b.date).toLocaleDateString()}
                 </span>
               </div>
@@ -134,7 +134,7 @@ const MyBookings = ({ showAlert }) => {
                 {b.flight.from} → {b.flight.to}
               </p>
 
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                 Class: {b.seatClass?.toUpperCase()}
               </p>
 

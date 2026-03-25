@@ -4,7 +4,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-[calc(100vh-70px)] transition">
+    <div className="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
 
       {/* HERO */}
       <div className="flex flex-col items-center justify-center text-center px-4 py-20">
@@ -13,7 +13,7 @@ const Home = () => {
           Welcome to Skytix
         </h1>
 
-        <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg max-w-xl">
+        <p className="text-gray-600 dark:text-gray-300 dark:text-gray-300 mb-8 text-lg max-w-xl">
           Book flights effortlessly, manage your journeys, and experience smarter travel.
         </p>
 
@@ -40,21 +40,21 @@ const Home = () => {
 
         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow text-center">
           <h3 className="font-semibold text-lg mb-2">Smart Search</h3>
-          <p className="text-gray-500 dark:text-gray-300 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Real-time flight availability with accurate seat tracking.
           </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow text-center">
           <h3 className="font-semibold text-lg mb-2">Easy Booking</h3>
-          <p className="text-gray-500 dark:text-gray-300 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Smooth multi-passenger booking experience.
           </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow text-center">
           <h3 className="font-semibold text-lg mb-2">Flexible Cancellation</h3>
-          <p className="text-gray-500 dark:text-gray-300 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Cancel tickets easily with seat restoration logic.
           </p>
         </div>
