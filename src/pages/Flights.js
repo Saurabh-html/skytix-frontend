@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import API from '../services/api';
+import { FaTimes } from 'react-icons/fa';
 
 const Flights = ({ showAlert }) => {
 
@@ -22,23 +23,34 @@ const Flights = ({ showAlert }) => {
   ]);
 
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [activePassengerIndex, setActivePassengerIndex] = useState(0);
 
-  // 🔥 AIRPORTS AUTOCOMPLETE (RESTORED)
   const [airports, setAirports] = useState([]);
   const [filteredAirports, setFilteredAirports] = useState([]);
   const [activeField, setActiveField] = useState(null);
 
+  const safeError = () => 'Unable to process request. Please try again.';
+
   useEffect(() => {
     const fetchAirports = async () => {
-      const res = await API.get('/airports');
-      setAirports(res.data);
+      try {
+        const res = await API.get('/airports');
+        setAirports(res.data || []);
+      } catch {}
     };
     fetchAirports();
   }, []);
 
   const handleSearchInput = (value, field) => {
-    field === 'from' ? setFrom(value) : setTo(value);
+    if (field === 'from') setFrom(value);
+    else setTo(value);
+
     setActiveField(field);
+
+    if (!value) {
+      setFilteredAirports([]);
+      return;
+    }
 
     const filtered = airports.filter(a =>
       a.city.toLowerCase().includes(value.toLowerCase())
@@ -63,11 +75,11 @@ const Flights = ({ showAlert }) => {
       setLoading(true);
 
       const res = await API.get(`/flights?from=${from}&to=${to}&date=${date}`);
-      setFlights(res.data.flights);
+      setFlights(res.data.flights || []);
       setSearched(true);
 
     } catch {
-      showAlert('Error fetching flights', 'danger');
+      showAlert(safeError(), 'danger');
     } finally {
       setLoading(false);
     }
@@ -76,7 +88,7 @@ const Flights = ({ showAlert }) => {
   const bookFlight = (flight) => {
     const seats = flight.seatsAvailable?.[seatClass] ?? flight.seatsAvailable;
 
-    if (seats === 0) {
+    if (!seats || seats === 0) {
       showAlert(`No ${seatClass} seats available`, 'danger');
       return;
     }
@@ -84,17 +96,28 @@ const Flights = ({ showAlert }) => {
     setSelectedFlight(flight);
     setPassengers([{ name: '', age: '', gender: '', seat: '' }]);
     setSelectedSeats([]);
+    setActivePassengerIndex(0);
+    setShowPayment(false);
   };
 
   const addPassenger = () => {
-    setPassengers([...passengers, { name: '', age: '', gender: '', seat: '' }]);
+    setPassengers(prev => [...prev, { name: '', age: '', gender: '', seat: '' }]);
   };
 
   const removePassenger = (index) => {
-    const removedSeat = passengers[index].seat;
+    const updatedPassengers = [...passengers];
+    const removedSeat = updatedPassengers[index].seat;
 
-    setSelectedSeats(prev => prev.filter(s => s !== removedSeat));
-    setPassengers(passengers.filter((_, i) => i !== index));
+    const newPassengers = updatedPassengers.filter((_, i) => i !== index);
+    setPassengers(newPassengers);
+
+    if (removedSeat) {
+      setSelectedSeats(prev => prev.filter(s => s !== removedSeat));
+    }
+
+    if (activePassengerIndex >= newPassengers.length) {
+      setActivePassengerIndex(0);
+    }
   };
 
   const handlePassengerChange = (index, field, value) => {
@@ -103,27 +126,48 @@ const Flights = ({ showAlert }) => {
     setPassengers(updated);
   };
 
-  // 🔥 SEAT MAP
   const generateSeats = () => {
     const rows = 5;
     const cols = ['A', 'B', 'C', 'D'];
     let seats = [];
+
     for (let i = 1; i <= rows; i++) {
       cols.forEach(c => seats.push(`${c}${i}`));
     }
+
     return seats;
   };
 
   const allSeats = generateSeats();
 
-  const selectSeat = (seat, index) => {
-    if (selectedSeats.includes(seat)) return;
+  const selectSeat = (seat) => {
+    if (selectedSeats.includes(seat)) {
+      setSelectedSeats(prev => prev.filter(s => s !== seat));
 
-    let updated = [...passengers];
-    updated[index].seat = seat;
+      const updated = passengers.map(p =>
+        p.seat === seat ? { ...p, seat: '' } : p
+      );
+
+      setPassengers(updated);
+      return;
+    }
+
+    if (selectedSeats.length >= passengers.length) {
+      showAlert('Only 1 seat per passenger', 'warning');
+      return;
+    }
+
+    const updated = [...passengers];
+    const oldSeat = updated[activePassengerIndex].seat;
+
+    if (oldSeat) {
+      setSelectedSeats(prev => prev.filter(s => s !== oldSeat));
+    }
+
+    updated[activePassengerIndex].seat = seat;
 
     setPassengers(updated);
-    setSelectedSeats([...selectedSeats, seat]);
+    setSelectedSeats(prev => [...prev, seat]);
   };
 
   const proceedToPayment = () => {
@@ -137,30 +181,28 @@ const Flights = ({ showAlert }) => {
   };
 
   const handlePayment = async () => {
-    setPaymentLoading(true);
+    try {
+      setPaymentLoading(true);
 
-    setTimeout(async () => {
-      try {
-        await API.post('/bookings', {
-          flightId: selectedFlight._id,
-          date,
-          passengers,
-          seatClass,
-          seats: passengers.map(p => p.seat)
-        });
+      await API.post('/bookings', {
+        flightId: selectedFlight._id,
+        date,
+        passengers,
+        seatClass,
+        seats: passengers.map(p => p.seat)
+      });
 
-        showAlert('Booking successful', 'success');
+      showAlert('Booking successful', 'success');
 
-        setShowPayment(false);
-        setSelectedFlight(null);
-        searchFlights();
+      setShowPayment(false);
+      setSelectedFlight(null);
+      searchFlights();
 
-      } catch (err) {
-        showAlert(err.response?.data?.message || 'Error', 'danger');
-      } finally {
-        setPaymentLoading(false);
-      }
-    }, 2000);
+    } catch {
+      showAlert(safeError(), 'danger');
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   return (
@@ -168,10 +210,8 @@ const Flights = ({ showAlert }) => {
 
       {/* SEARCH */}
       <div className="bg-white p-4 rounded shadow mb-6">
-
         <div className="flex flex-col sm:flex-row gap-3">
 
-          {/* FROM */}
           <div className="relative w-full">
             <input
               value={from}
@@ -198,7 +238,6 @@ const Flights = ({ showAlert }) => {
             )}
           </div>
 
-          {/* TO */}
           <div className="relative w-full">
             <input
               value={to}
@@ -234,22 +273,23 @@ const Flights = ({ showAlert }) => {
             className="border p-2 w-full"
           />
 
-          <button onClick={searchFlights}
-            className="bg-blue-600 text-white px-4 py-2 w-full sm:w-auto">
+          <button
+            onClick={searchFlights}
+            className="bg-blue-600 text-white px-4 py-2 w-full sm:w-auto"
+          >
             {loading ? 'Searching...' : 'Search'}
           </button>
 
         </div>
       </div>
 
-      {/* RESULTS */}
       {loading && <p className="text-center">Searching...</p>}
 
       {searched && flights.length===0 && (
         <p className="text-center text-gray-500">No flights available</p>
       )}
 
-      {/* FLIGHT LIST */}
+      {/* FLIGHTS */}
       <div className="grid gap-4 md:grid-cols-2">
         {flights.map(f=>(
           <div key={f._id} className="bg-white p-4 shadow rounded">
@@ -261,8 +301,10 @@ const Flights = ({ showAlert }) => {
               E ₹{f.prices?.economy} | B ₹{f.prices?.business} | F ₹{f.prices?.first}
             </p>
 
-            <button onClick={()=>bookFlight(f)}
-              className="bg-green-600 text-white px-3 py-1 mt-2 w-full">
+            <button
+              onClick={()=>bookFlight(f)}
+              className="bg-green-600 text-white px-3 py-1 mt-2 w-full"
+            >
               Book Now
             </button>
 
@@ -274,24 +316,38 @@ const Flights = ({ showAlert }) => {
       {selectedFlight && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-3">
 
-          <div className="bg-white p-4 rounded w-full max-w-md">
+          <div className="bg-white p-4 rounded w-full max-w-md relative">
 
-            <select value={seatClass}
+            <FaTimes
+              className="absolute top-2 right-2 cursor-pointer text-red-500"
+              onClick={()=>setSelectedFlight(null)}
+            />
+
+            <select
+              value={seatClass}
               onChange={(e)=>setSeatClass(e.target.value)}
-              className="border p-2 w-full mb-3">
+              className="border p-2 w-full mb-3"
+            >
               <option value="economy">Economy</option>
               <option value="business">Business</option>
               <option value="first">First</option>
             </select>
 
             {passengers.map((p,i)=>(
-              <div key={i} className="mb-3 border p-2">
+              <div key={i}
+                onClick={()=>setActivePassengerIndex(i)}
+                className={`mb-3 border p-2 cursor-pointer ${activePassengerIndex===i?'border-blue-500':''}`}>
 
-                <input placeholder="Name" className="border p-2 w-full mb-1"
-                  onChange={(e)=>handlePassengerChange(i,'name',e.target.value)} />
+                <input className="border p-2 w-full mb-1"
+                  placeholder="Name"
+                  onChange={(e)=>handlePassengerChange(i,'name',e.target.value)}
+                />
 
-                <input placeholder="Age" className="border p-2 w-full mb-1"
-                  onChange={(e)=>handlePassengerChange(i,'age',e.target.value)} />
+                <input type="number"
+                  placeholder="Age"
+                  className="border p-2 w-full mb-1"
+                  onChange={(e)=>handlePassengerChange(i,'age',e.target.value)}
+                />
 
                 <select className="border p-2 w-full mb-2"
                   onChange={(e)=>handlePassengerChange(i,'gender',e.target.value)}>
@@ -303,7 +359,11 @@ const Flights = ({ showAlert }) => {
                 <p>Seat: {p.seat || 'Not selected'}</p>
 
                 {passengers.length>1 && (
-                  <button onClick={()=>removePassenger(i)}
+                  <button
+                    onClick={(e)=>{
+                      e.stopPropagation();
+                      removePassenger(i);
+                    }}
                     className="bg-red-500 text-white px-2 py-1">
                     Remove
                   </button>
@@ -311,12 +371,15 @@ const Flights = ({ showAlert }) => {
               </div>
             ))}
 
-            {/* SEAT GRID */}
             <div className="grid grid-cols-4 gap-2 mb-3">
               {allSeats.map(s=>(
                 <button key={s}
-                  onClick={()=>selectSeat(s,0)}
-                  className={`p-2 border ${selectedSeats.includes(s)?'bg-green-500 text-white':''}`}>
+                  onClick={()=>selectSeat(s)}
+                  className={`p-2 border ${
+                    selectedSeats.includes(s)
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200'
+                  }`}>
                   {s}
                 </button>
               ))}
@@ -340,7 +403,12 @@ const Flights = ({ showAlert }) => {
       {showPayment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
 
-          <div className="bg-white p-4 rounded w-full max-w-sm">
+          <div className="bg-white p-4 rounded w-full max-w-sm relative">
+
+            <FaTimes
+              className="absolute top-2 right-2 cursor-pointer text-red-500"
+              onClick={()=>setShowPayment(false)}
+            />
 
             <h2 className="font-bold mb-3">Payment</h2>
 
@@ -348,9 +416,11 @@ const Flights = ({ showAlert }) => {
             <input placeholder="Expiry" className="border p-2 w-full mb-2"/>
             <input placeholder="CVV" className="border p-2 w-full mb-2"/>
 
-            <button onClick={handlePayment}
+            <button
+              onClick={handlePayment}
               disabled={paymentLoading}
-              className="bg-green-600 text-white w-full py-2">
+              className="bg-green-600 text-white w-full py-2"
+            >
               {paymentLoading ? 'Processing...' : 'Pay Now'}
             </button>
 

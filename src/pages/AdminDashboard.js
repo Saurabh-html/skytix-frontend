@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import API from '../services/api';
+import { FaTimes, FaEdit, FaTrash } from 'react-icons/fa';
 
 const AdminDashboard = ({ showAlert }) => {
 
@@ -12,23 +13,14 @@ const AdminDashboard = ({ showAlert }) => {
     totalRevenue: 0
   });
 
-  // 🔥 UPDATED FORM (CLASS SUPPORT)
+  const [editFlight, setEditFlight] = useState(null);
+
   const [form, setForm] = useState({
     flightNumber: '',
     from: '',
     to: '',
     departureTime: '',
-    arrivalTime: '',
-    scheduleType: 'daily',
-
-    // NEW
-    economyPrice: '',
-    businessPrice: '',
-    firstPrice: '',
-
-    economySeats: '',
-    businessSeats: '',
-    firstSeats: ''
+    arrivalTime: ''
   });
 
   const [bulk, setBulk] = useState({
@@ -36,39 +28,35 @@ const AdminDashboard = ({ showAlert }) => {
     count: 1
   });
 
-  // =========================
-  // FETCH FLIGHTS
-  // =========================
+  const safeError = () => 'Unable to process request. Please try again.';
+
   const fetchFlights = useCallback(async () => {
     try {
       setLoading(true);
 
       const res = await API.get('/flights');
-      setFlights(res.data.flights || []);
+      const data = res.data.flights || [];
+
+      setFlights(data);
 
       setStats(prev => ({
         ...prev,
-        totalFlights: res.data.flights.length
+        totalFlights: data.length
       }));
 
     } catch {
-      showAlert('Error fetching flights', 'danger');
+      showAlert(safeError(), 'danger');
     } finally {
       setLoading(false);
     }
   }, [showAlert]);
 
-  // =========================
-  // FETCH BOOKINGS
-  // =========================
   const fetchBookingsStats = async () => {
     try {
       const res = await API.get('/bookings/stats');
 
       const bookings = res.data.bookings || [];
-
-      let revenue = 0;
-      bookings.forEach(b => revenue += b.totalPrice);
+      const revenue = bookings.reduce((sum, b) => sum + b.totalPrice, 0);
 
       setStats(prev => ({
         ...prev,
@@ -76,9 +64,7 @@ const AdminDashboard = ({ showAlert }) => {
         totalRevenue: revenue
       }));
 
-    } catch {
-      console.log('Stats fetch failed');
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -86,196 +72,127 @@ const AdminDashboard = ({ showAlert }) => {
     fetchBookingsStats();
   }, [fetchFlights]);
 
-  // =========================
-  // CREATE FLIGHT
-  // =========================
   const createFlight = async () => {
+    if (!form.flightNumber || !form.from || !form.to) {
+      showAlert('Fill all required fields', 'warning');
+      return;
+    }
+
     try {
-      await API.post('/flights', {
-        flightNumber: form.flightNumber,
-        from: form.from,
-        to: form.to,
-        departureTime: form.departureTime,
-        arrivalTime: form.arrivalTime,
-        scheduleType: form.scheduleType,
-
-        // 🔥 CLASS CONFIG
-        priceConfig: {
-          economy: Number(form.economyPrice),
-          business: Number(form.businessPrice),
-          first: Number(form.firstPrice)
-        },
-
-        seatConfig: {
-          economy: Number(form.economySeats),
-          business: Number(form.businessSeats),
-          first: Number(form.firstSeats)
-        }
-      });
-
+      await API.post('/flights', form);
       showAlert('Flight created', 'success');
       fetchFlights();
-
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Error', 'danger');
+    } catch {
+      showAlert(safeError(), 'danger');
     }
   };
 
-  // =========================
-  // BULK CREATE
-  // =========================
   const createBulk = async () => {
+    if (!bulk.baseFlightNumber) {
+      showAlert('Enter base flight number', 'warning');
+      return;
+    }
+
     try {
-      await API.post('/flights/bulk', {
-        ...bulk,
-
-        from: form.from,
-        to: form.to,
-        departureTime: form.departureTime,
-        arrivalTime: form.arrivalTime,
-        scheduleType: form.scheduleType,
-
-        priceConfig: {
-          economy: Number(form.economyPrice),
-          business: Number(form.businessPrice),
-          first: Number(form.firstPrice)
-        },
-
-        seatConfig: {
-          economy: Number(form.economySeats),
-          business: Number(form.businessSeats),
-          first: Number(form.firstSeats)
-        }
-      });
-
+      await API.post('/flights/bulk', { ...bulk, ...form });
       showAlert('Bulk flights created', 'success');
       fetchFlights();
-
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Error', 'danger');
+    } catch {
+      showAlert(safeError(), 'danger');
     }
   };
 
-  // =========================
-  // DELETE
-  // =========================
   const deleteFlight = async (id) => {
     try {
       await API.delete(`/flights/${id}`);
       showAlert('Flight deleted', 'success');
       fetchFlights();
     } catch {
-      showAlert('Error deleting flight', 'danger');
+      showAlert(safeError(), 'danger');
     }
   };
 
-  // =========================
-  // CANCEL DATE
-  // =========================
   const cancelDate = async (id) => {
     const date = prompt('Enter date (YYYY-MM-DD)');
     if (!date) return;
 
     try {
       await API.put(`/flights/${id}/cancel-date`, { date });
-      showAlert('Flight cancelled for date', 'success');
+      showAlert('Cancelled for date', 'success');
     } catch {
-      showAlert('Error cancelling', 'danger');
+      showAlert(safeError(), 'danger');
+    }
+  };
+
+  const updateFlight = async () => {
+    try {
+      await API.put(`/flights/${editFlight._id}`, editFlight);
+      showAlert('Flight updated', 'success');
+      setEditFlight(null);
+      fetchFlights();
+    } catch {
+      showAlert(safeError(), 'danger');
     }
   };
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
 
-      {/* 📊 STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-
-        <div className="bg-white p-4 shadow rounded text-center">
-          <h3>Flights</h3>
-          <p className="text-2xl">{stats.totalFlights}</p>
-        </div>
-
-        <div className="bg-white p-4 shadow rounded text-center">
-          <h3>Bookings</h3>
-          <p className="text-2xl">{stats.totalBookings}</p>
-        </div>
-
-        <div className="bg-white p-4 shadow rounded text-center">
-          <h3>Revenue</h3>
-          <p className="text-2xl">₹ {stats.totalRevenue}</p>
-        </div>
-
+      {/* STATS */}
+      <div className="grid md:grid-cols-3 gap-4 mb-6">
+        <StatCard title="Flights" value={stats.totalFlights} />
+        <StatCard title="Bookings" value={stats.totalBookings} />
+        <StatCard title="Revenue" value={`₹${stats.totalRevenue}`} />
       </div>
 
-      {/* ✈️ FORM */}
-      <div className="bg-white p-5 rounded shadow mb-6">
+      {/* CREATE */}
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <h2 className="font-bold mb-3">Add Flight</h2>
 
-        <h2 className="text-xl font-bold mb-4">Add Flight</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-
-          <input placeholder="Flight No" onChange={(e)=>setForm({...form, flightNumber:e.target.value})} className="border p-2"/>
-          <input placeholder="From" onChange={(e)=>setForm({...form, from:e.target.value})} className="border p-2"/>
-          <input placeholder="To" onChange={(e)=>setForm({...form, to:e.target.value})} className="border p-2"/>
-
-          <input placeholder="Departure" onChange={(e)=>setForm({...form, departureTime:e.target.value})} className="border p-2"/>
-          <input placeholder="Arrival" onChange={(e)=>setForm({...form, arrivalTime:e.target.value})} className="border p-2"/>
-
-          {/* 🔥 CLASS PRICES */}
-          <input placeholder="Economy Price" onChange={(e)=>setForm({...form, economyPrice:e.target.value})} className="border p-2"/>
-          <input placeholder="Business Price" onChange={(e)=>setForm({...form, businessPrice:e.target.value})} className="border p-2"/>
-          <input placeholder="First Price" onChange={(e)=>setForm({...form, firstPrice:e.target.value})} className="border p-2"/>
-
-          {/* 🔥 CLASS SEATS */}
-          <input placeholder="Economy Seats" onChange={(e)=>setForm({...form, economySeats:e.target.value})} className="border p-2"/>
-          <input placeholder="Business Seats" onChange={(e)=>setForm({...form, businessSeats:e.target.value})} className="border p-2"/>
-          <input placeholder="First Seats" onChange={(e)=>setForm({...form, firstSeats:e.target.value})} className="border p-2"/>
-
-          <select onChange={(e)=>setForm({...form, scheduleType:e.target.value})} className="border p-2">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-          </select>
-
-          <input
-            placeholder="Bulk Count"
-            type="number"
-            value={bulk.count}
-            onChange={(e)=>setBulk({...bulk, count:e.target.value})}
-            className="border p-2"
-          />
-
+        <div className="grid grid-cols-2 gap-2">
+          {Object.keys(form).map((key) => (
+            <input
+              key={key}
+              placeholder={key}
+              className="border p-2"
+              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+            />
+          ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <button onClick={createFlight} className="bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto">
-            Create
-          </button>
+        <button onClick={createFlight} className="bg-blue-600 text-white px-4 py-2 mt-3">
+          Create Flight
+        </button>
 
-          <button onClick={createBulk} className="bg-purple-600 text-white px-4 py-2 rounded w-full sm:w-auto">
+        <div className="mt-4 flex gap-2">
+          <input placeholder="Base Flight Number" className="border p-2"
+            onChange={(e)=>setBulk({...bulk, baseFlightNumber:e.target.value})} />
+
+          <input type="number" value={bulk.count} className="border p-2"
+            onChange={(e)=>setBulk({...bulk, count:e.target.value})} />
+
+          <button onClick={createBulk} className="bg-purple-600 text-white px-3 py-2">
             Bulk Create
           </button>
         </div>
-
       </div>
 
       {/* LIST */}
       {loading ? <p>Loading...</p> : (
         <div className="grid gap-4">
           {flights.map(f => (
-            <div key={f._id} className="bg-white p-4 shadow rounded flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div key={f._id} className="bg-white p-4 shadow rounded flex justify-between items-center">
 
               <div>
                 <h3>{f.flightNumber}</h3>
                 <p>{f.from} → {f.to}</p>
               </div>
 
-              <div className="flex gap-2">
-                <button onClick={()=>cancelDate(f._id)} className="bg-yellow-500 text-white px-3 py-1 rounded">
-                  Cancel Date
-                </button>
-
-                <button onClick={()=>deleteFlight(f._id)} className="bg-red-500 text-white px-3 py-1 rounded">
-                  Delete
+              <div className="flex gap-3 text-lg">
+                <FaEdit className="cursor-pointer" onClick={()=>setEditFlight(f)} />
+                <FaTrash className="cursor-pointer text-red-500" onClick={()=>deleteFlight(f._id)} />
+                <button onClick={()=>cancelDate(f._id)} className="bg-yellow-500 text-white px-2 py-1">
+                  Cancel
                 </button>
               </div>
 
@@ -284,8 +201,43 @@ const AdminDashboard = ({ showAlert }) => {
         </div>
       )}
 
+      {/* EDIT */}
+      {editFlight && (
+        <Modal onClose={()=>setEditFlight(null)}>
+          <h3 className="mb-3 font-bold">Edit Flight</h3>
+
+          {['flightNumber','from','to'].map(field => (
+            <input key={field}
+              className="border p-2 w-full mb-2"
+              value={editFlight[field]}
+              onChange={(e)=>setEditFlight({...editFlight,[field]:e.target.value})}
+            />
+          ))}
+
+          <button onClick={updateFlight} className="bg-blue-600 text-white w-full py-2">
+            Save
+          </button>
+        </Modal>
+      )}
+
     </div>
   );
 };
+
+const StatCard = ({ title, value }) => (
+  <div className="bg-white p-4 text-center shadow rounded">
+    <h3>{title}</h3>
+    <p className="text-xl">{value}</p>
+  </div>
+);
+
+const Modal = ({ children, onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-5 rounded relative w-80">
+      <FaTimes className="absolute top-2 right-2 cursor-pointer" onClick={onClose}/>
+      {children}
+    </div>
+  </div>
+);
 
 export default AdminDashboard;

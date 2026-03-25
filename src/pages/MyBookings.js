@@ -3,6 +3,7 @@ import API from '../services/api';
 import jsPDF from 'jspdf';
 
 const MyBookings = ({ showAlert }) => {
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -10,18 +11,22 @@ const MyBookings = ({ showAlert }) => {
   const [selectedPassengers, setSelectedPassengers] = useState({});
   const [cancelMode, setCancelMode] = useState({});
 
+  const safeError = () => 'Unable to process request. Please try again.';
+
   useEffect(() => {
     fetchBookings();
-    //eslint-disable-next-line
+    // eslint-disable-next-line
   }, []);
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
+
       const res = await API.get('/bookings/my');
-      setBookings(res.data.bookings);
+      setBookings(res.data.bookings || []);
+
     } catch {
-      showAlert('Error fetching bookings', 'danger');
+      showAlert(safeError(), 'danger');
     } finally {
       setLoading(false);
     }
@@ -56,19 +61,18 @@ const MyBookings = ({ showAlert }) => {
       });
 
       showAlert('Cancelled successfully', 'success');
-      fetchBookings();
 
+      fetchBookings();
       setCancelMode({});
       setSelectedPassengers({});
 
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Error', 'danger');
+    } catch {
+      showAlert(safeError(), 'danger');
     } finally {
       setActionLoading(false);
     }
   };
 
-  // 🔥 UPDATED PDF (SEAT ADDED)
   const downloadTicket = (b) => {
     const doc = new jsPDF();
 
@@ -104,7 +108,7 @@ const MyBookings = ({ showAlert }) => {
       {!loading && bookings.length === 0 && (
         <div className="text-center text-gray-400 mt-10">
           <p className="text-lg">No bookings yet</p>
-          <p>Book your first flight ✈️</p>
+          <p>Book your first flight</p>
         </div>
       )}
 
@@ -114,7 +118,7 @@ const MyBookings = ({ showAlert }) => {
           const isCancelMode = cancelMode[b._id];
 
           return (
-            <div key={b._id} className="bg-white p-5 rounded-lg shadow-md">
+            <div key={b._id} className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-md">
 
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
                 <h3 className="font-bold text-blue-600">
@@ -141,7 +145,7 @@ const MyBookings = ({ showAlert }) => {
                 {b.passengers.map((p, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded mb-1"
+                    className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded mb-1"
                   >
 
                     {isCancelMode && (
@@ -155,7 +159,6 @@ const MyBookings = ({ showAlert }) => {
                       {p.name} ({p.age}, {p.gender})
                     </span>
 
-                    {/* 🔥 NEW SEAT DISPLAY */}
                     <span className="ml-auto text-blue-600 font-medium">
                       Seat: {p.seat || '-'}
                     </span>
@@ -202,7 +205,7 @@ const MyBookings = ({ showAlert }) => {
                       onClick={() =>
                         setCancelMode(prev => ({ ...prev, [b._id]: false }))
                       }
-                      className="bg-gray-400 text-white px-3 py-1 rounded w-full sm:w-auto"
+                      className="bg-gray-400 text-white px-3 py-1 rounded"
                     >
                       Back
                     </button>

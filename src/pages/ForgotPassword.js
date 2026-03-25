@@ -10,8 +10,20 @@ const ForgotPassword = ({ showAlert }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const safeError = () => 'Unable to process request. Please try again.';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!email.trim()) {
+      showAlert('Email is required', 'warning');
+      return;
+    }
+
+    if (password.length < 6) {
+      showAlert('Password must be at least 6 characters', 'warning');
+      return;
+    }
 
     if (password !== confirmPassword) {
       showAlert('Passwords do not match', 'danger');
@@ -26,14 +38,12 @@ const ForgotPassword = ({ showAlert }) => {
         newPassword: password
       });
 
-      showAlert('Password Updated Successfully', 'success');
+      showAlert('Password updated successfully', 'success');
 
-      setTimeout(() => {
-        navigate('/login');
-      }, 1000);
+      setTimeout(() => navigate('/login'), 1000);
 
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Error', 'danger');
+    } catch {
+      showAlert(safeError(), 'danger');
     } finally {
       setLoading(false);
     }
@@ -45,13 +55,13 @@ const ForgotPassword = ({ showAlert }) => {
         <h2 style={{ textAlign: 'center' }}>Reset Password</h2>
 
         <form onSubmit={handleSubmit}>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} required />
-          <input type="password" placeholder="New Password" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} required />
-          <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={inputStyle} required />
+          <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} style={inputStyle} required />
+          <input type="password" placeholder="New Password" value={password} onChange={(e)=>setPassword(e.target.value)} style={inputStyle} required />
+          <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} style={inputStyle} required />
 
           <button
             type="submit"
-            disabled={loading || password !== confirmPassword}
+            disabled={loading}
             style={{
               ...buttonStyle,
               background: loading ? '#ccc' : '#28a745'

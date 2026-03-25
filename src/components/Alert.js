@@ -1,34 +1,44 @@
 const Alert = ({ alert }) => {
-  if (!alert) return null;
+  if (!alert || !alert.message) return null;
+
+  const getSafeMessage = () => {
+    if (typeof alert.message !== 'string') return 'Something went wrong';
+
+    // prevent raw backend errors leaking
+    if (
+      alert.message.toLowerCase().includes('json') ||
+      alert.message.toLowerCase().includes('stack') ||
+      alert.message.toLowerCase().includes('error:')
+    ) {
+      return 'Something went wrong. Please try again.';
+    }
+
+    return alert.message;
+  };
+
+  const typeStyles = {
+    success: 'bg-green-500',
+    danger: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-500'
+  };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '60px',
-        left: 0,
-        width: '100%',
-        zIndex: 9999
-      }}
-    >
+    <div className="fixed top-[60px] left-0 w-full z-[9999] flex justify-center">
       <div
-        className={`alert alert-${alert.type} text-center m-0`}
-        role="alert"
+        className={`text-white px-4 py-2 rounded shadow-md ${typeStyles[alert.type] || 'bg-gray-700'}`}
         style={{
-          border: 'none',
-          borderRadius: 0,
-          animation: 'slideDown 0.4s ease'
+          animation: 'slideDown 0.3s ease'
         }}
       >
-        {alert.message}
+        {getSafeMessage()}
       </div>
 
-      {/* ANIMATION */}
       <style>
         {`
           @keyframes slideDown {
             from {
-              transform: translateY(-100%);
+              transform: translateY(-20px);
               opacity: 0;
             }
             to {
