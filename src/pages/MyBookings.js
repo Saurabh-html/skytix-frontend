@@ -97,130 +97,137 @@ const MyBookings = ({ showAlert }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+  <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
 
-      <h2 className="text-3xl font-bold mb-6">My Bookings</h2>
+    <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
+      My Bookings
+    </h2>
 
-      {loading && (
-        <p className="text-center text-gray-500 dark:text-gray-400">Loading bookings...</p>
-      )}
+    {loading && (
+      <p className="text-center text-gray-500 dark:text-gray-400">
+        Loading bookings...
+      </p>
+    )}
 
-      {!loading && bookings.length === 0 && (
-        <div className="text-center text-gray-400 mt-10">
-          <p className="text-lg">No bookings yet</p>
-          <p>Book your first flight</p>
-        </div>
-      )}
+    {!loading && bookings.length === 0 && (
+      <div className="text-center text-gray-500 dark:text-gray-400 mt-10">
+        <p className="text-lg font-semibold">No bookings yet</p>
+        <p>Book your first flight</p>
+      </div>
+    )}
 
-      <div className="space-y-5">
+    <div className="space-y-5">
 
-        {bookings.map(b => {
-          const isCancelMode = cancelMode[b._id];
+      {bookings.map(b => {
+        const isCancelMode = cancelMode[b._id];
 
-          return (
-            <div key={b._id} className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-md">
+        return (
+          <div key={b._id} className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-md border dark:border-gray-700">
 
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
-                <h3 className="font-bold text-blue-600">
-                  {b.flight.flightNumber}
-                </h3>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
+              <h3 className="font-bold text-blue-600 dark:text-blue-400">
+                {b.flight.flightNumber}
+              </h3>
 
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(b.date).toLocaleDateString()}
-                </span>
-              </div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {new Date(b.date).toLocaleDateString()}
+              </span>
+            </div>
 
-              <p className="mb-2">
-                {b.flight.from} → {b.flight.to}
+            <p className="mb-2 text-gray-700 dark:text-gray-300">
+              {b.flight.from} → {b.flight.to}
+            </p>
+
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              Class: {b.seatClass?.toUpperCase()}
+            </p>
+
+            {/* PASSENGERS */}
+            <div className="mb-3">
+              <p className="font-semibold mb-1 text-gray-800 dark:text-white">
+                Passengers
               </p>
 
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Class: {b.seatClass?.toUpperCase()}
-              </p>
+              {b.passengers.map((p, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded mb-1 border dark:border-gray-600"
+                >
 
-              {/* PASSENGERS */}
-              <div className="mb-3">
-                <p className="font-semibold mb-1">Passengers</p>
+                  {isCancelMode && (
+                    <input
+                      type="checkbox"
+                      onChange={() => togglePassenger(b._id, i)}
+                      className="accent-red-500"
+                    />
+                  )}
 
-                {b.passengers.map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded mb-1"
+                  <span className="text-gray-800 dark:text-gray-200">
+                    {p.name} ({p.age}, {p.gender})
+                  </span>
+
+                  <span className="ml-auto text-blue-600 dark:text-blue-400 font-medium">
+                    Seat: {p.seat || '-'}
+                  </span>
+
+                </div>
+              ))}
+            </div>
+
+            <p className="font-bold mb-3 text-gray-800 dark:text-white">
+              Total: ₹ {b.totalPrice}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+
+              {!isCancelMode ? (
+                <>
+                  <button
+                    onClick={() =>
+                      setCancelMode(prev => ({ ...prev, [b._id]: true }))
+                    }
+                    className="bg-red-500 text-white px-3 py-1 rounded w-full sm:w-auto hover:bg-red-600 transition"
                   >
+                    Cancel Ticket
+                  </button>
 
-                    {isCancelMode && (
-                      <input
-                        type="checkbox"
-                        onChange={() => togglePassenger(b._id, i)}
-                      />
-                    )}
+                  <button
+                    onClick={() => downloadTicket(b)}
+                    className="bg-green-600 text-white px-3 py-1 rounded w-full sm:w-auto hover:bg-green-700 transition"
+                  >
+                    Download Ticket
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    disabled={actionLoading}
+                    onClick={() => cancelBooking(b._id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                  >
+                    {actionLoading ? 'Cancelling...' : 'Confirm Cancel'}
+                  </button>
 
-                    <span>
-                      {p.name} ({p.age}, {p.gender})
-                    </span>
-
-                    <span className="ml-auto text-blue-600 font-medium">
-                      Seat: {p.seat || '-'}
-                    </span>
-
-                  </div>
-                ))}
-              </div>
-
-              <p className="font-bold mb-3">
-                Total: ₹ {b.totalPrice}
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-
-                {!isCancelMode ? (
-                  <>
-                    <button
-                      onClick={() =>
-                        setCancelMode(prev => ({ ...prev, [b._id]: true }))
-                      }
-                      className="bg-red-500 text-white px-3 py-1 rounded w-full sm:w-auto"
-                    >
-                      Cancel Ticket
-                    </button>
-
-                    <button
-                      onClick={() => downloadTicket(b)}
-                      className="bg-green-600 text-white px-3 py-1 rounded w-full sm:w-auto"
-                    >
-                      Download Ticket
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      disabled={actionLoading}
-                      onClick={() => cancelBooking(b._id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded"
-                    >
-                      {actionLoading ? 'Cancelling...' : 'Confirm Cancel'}
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        setCancelMode(prev => ({ ...prev, [b._id]: false }))
-                      }
-                      className="bg-gray-400 text-white px-3 py-1 rounded"
-                    >
-                      Back
-                    </button>
-                  </>
-                )}
-
-              </div>
+                  <button
+                    onClick={() =>
+                      setCancelMode(prev => ({ ...prev, [b._id]: false }))
+                    }
+                    className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500 transition"
+                  >
+                    Back
+                  </button>
+                </>
+              )}
 
             </div>
-          );
-        })}
 
-      </div>
+          </div>
+        );
+      })}
+
     </div>
-  );
+  </div>
+);
 };
 
 export default MyBookings;

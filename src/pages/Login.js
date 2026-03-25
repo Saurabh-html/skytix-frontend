@@ -74,7 +74,7 @@ const Login = ({ showAlert }) => {
 
           <div className="flex justify-between text-sm mb-2">
             <Link to="/register">Register</Link>
-            <Link to="/forgot-password">Forgot?</Link>
+            <Link to="/forgot-password">Forgot Password?</Link>
           </div>
 
           <button
