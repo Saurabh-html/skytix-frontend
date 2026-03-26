@@ -28,7 +28,7 @@ const AdminDashboard = ({ showAlert }) => {
       const res = await API.get('/flights');
       setFlights(res.data.flights || []);
     } catch (err) {
-      showAlert(err.response?.data?.message || 'Unable to load flights', 'danger');
+      showAlert('Unable to load flights', 'danger');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ const AdminDashboard = ({ showAlert }) => {
 
     } catch (err) {
       console.log(err.response?.data);
-      showAlert(err.response?.data?.message || 'Operation failed', 'danger');
+      showAlert('Operation failed', 'danger');
     }
   };
 
@@ -109,7 +109,7 @@ const AdminDashboard = ({ showAlert }) => {
       showAlert('Flight deleted', 'success');
 
     } catch (err) {
-      showAlert(err.response?.data?.message || 'Delete failed', 'danger');
+      showAlert('Delete failed', 'danger');
     }
   };
 
