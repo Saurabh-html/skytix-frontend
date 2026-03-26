@@ -180,30 +180,37 @@ const Flights = ({ showAlert }) => {
     setShowPayment(true);
   };
 
-  const handlePayment = async () => {
-    try {
-      setPaymentLoading(true);
+const handlePayment = async () => {
+  try {
+    setPaymentLoading(true);
 
-      await API.post('/bookings', {
-        flightId: selectedFlight._id,
-        date,
-        passengers,
-        seatClass,
-        seats: passengers.map(p => p.seat)
-      });
+    //  Simulate payment delay (real-world feel)
+    await new Promise(res => setTimeout(res, 800));
 
-      showAlert('Booking successful', 'success');
+    //  Direct booking (no card validation)
+    await API.post('/bookings', {
+      flightId: selectedFlight._id,
+      date,
+      passengers,
+      seatClass
+    });
 
-      setShowPayment(false);
-      setSelectedFlight(null);
-      searchFlights();
+    showAlert('Booking successful', 'success');
 
-    } catch {
-      showAlert(safeError(), 'danger');
-    } finally {
-      setPaymentLoading(false);
-    }
-  };
+    // ✅ Reset states safely
+    setShowPayment(false);
+    setSelectedFlight(null);
+    setPassengers([{ name: '', age: '', gender: '', seat: '' }]);
+    setSelectedSeats([]);
+
+    await searchFlights();
+
+  } catch {
+    showAlert('Unable to complete booking. Please try again.', 'danger');
+  } finally {
+    setPaymentLoading(false);
+  }
+};
 
 return (
   <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-gray-100 text-gray-800 min-h-screen">

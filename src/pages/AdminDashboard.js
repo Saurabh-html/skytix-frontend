@@ -14,16 +14,14 @@ const AdminDashboard = ({ showAlert }) => {
     departureTime: '',
     arrivalTime: '',
     price: '',
-    seatsAvailable: '',
-    scheduleType: 'daily',
-    daysOfWeek: []
+    seatsAvailable: ''
   });
 
-  const [editingFlight, setEditingFlight] = useState(null);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchFlights();
-  //eslint-disable-next-line
+    //eslint-disable-next-line
   }, []);
 
   const fetchFlights = async () => {
@@ -32,7 +30,7 @@ const AdminDashboard = ({ showAlert }) => {
       const res = await API.get('/flights');
       setFlights(res.data.flights || []);
     } catch {
-      showAlert('Unable to fetch flights', 'danger');
+      showAlert('Unable to load flights', 'danger');
     } finally {
       setLoading(false);
     }
@@ -42,8 +40,8 @@ const AdminDashboard = ({ showAlert }) => {
     e.preventDefault();
 
     try {
-      if (editingFlight) {
-        await API.put(`/flights/${editingFlight._id}`, form);
+      if (editingId) {
+        await API.put(`/flights/${editingId}`, form);
         showAlert('Flight updated', 'success');
       } else {
         await API.post('/flights', form);
@@ -57,12 +55,10 @@ const AdminDashboard = ({ showAlert }) => {
         departureTime: '',
         arrivalTime: '',
         price: '',
-        seatsAvailable: '',
-        scheduleType: 'daily',
-        daysOfWeek: []
+        seatsAvailable: ''
       });
 
-      setEditingFlight(null);
+      setEditingId(null);
       fetchFlights();
 
     } catch {
@@ -70,12 +66,16 @@ const AdminDashboard = ({ showAlert }) => {
     }
   };
 
-  const handleEdit = (flight) => {
-    setEditingFlight(flight);
+  const handleEdit = (f) => {
+    setEditingId(f._id);
     setForm({
-      ...flight,
-      price: flight.price || '',
-      seatsAvailable: flight.seatsAvailable || ''
+      flightNumber: f.flightNumber,
+      from: f.from,
+      to: f.to,
+      departureTime: f.departureTime,
+      arrivalTime: f.arrivalTime,
+      price: f.price,
+      seatsAvailable: f.seatsAvailable
     });
   };
 
@@ -96,126 +96,99 @@ const AdminDashboard = ({ showAlert }) => {
     }
   };
 
-return (
-  <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-gray-100 text-gray-800 min-h-screen">
+  return (
+    <div className="max-w-6xl mx-auto p-6">
 
-    <h2 className="text-3xl font-bold mb-6 text-gray-800">
-      Admin Dashboard
-    </h2>
+      <h2 className="text-3xl font-bold mb-6">Admin Panel</h2>
 
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-5 rounded shadow mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 border"
-    >
+      {/* FORM */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 mb-6">
 
-      <input placeholder="Flight Number"
-        value={form.flightNumber}
-        onChange={e => setForm({ ...form, flightNumber: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="Flight No"
+          value={form.flightNumber}
+          onChange={e => setForm({...form, flightNumber:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <input placeholder="From"
-        value={form.from}
-        onChange={e => setForm({ ...form, from: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="From"
+          value={form.from}
+          onChange={e => setForm({...form, from:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <input placeholder="To"
-        value={form.to}
-        onChange={e => setForm({ ...form, to: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="To"
+          value={form.to}
+          onChange={e => setForm({...form, to:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <input placeholder="Departure Time"
-        value={form.departureTime}
-        onChange={e => setForm({ ...form, departureTime: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="Departure"
+          value={form.departureTime}
+          onChange={e => setForm({...form, departureTime:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <input placeholder="Arrival Time"
-        value={form.arrivalTime}
-        onChange={e => setForm({ ...form, arrivalTime: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="Arrival"
+          value={form.arrivalTime}
+          onChange={e => setForm({...form, arrivalTime:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <input placeholder="Price"
-        value={form.price}
-        onChange={e => setForm({ ...form, price: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="Price"
+          value={form.price}
+          onChange={e => setForm({...form, price:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <input placeholder="Seats"
-        value={form.seatsAvailable}
-        onChange={e => setForm({ ...form, seatsAvailable: e.target.value })}
-        className="border p-2 rounded"
-      />
+        <input placeholder="Seats"
+          value={form.seatsAvailable}
+          onChange={e => setForm({...form, seatsAvailable:e.target.value})}
+          className="border p-2 rounded"
+        />
 
-      <select
-        value={form.scheduleType}
-        onChange={e => setForm({ ...form, scheduleType: e.target.value })}
-        className="border p-2 rounded"
-      >
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-      </select>
+        <button className="col-span-2 bg-blue-600 text-white py-2 rounded">
+          {editingId ? 'Update Flight' : 'Create Flight'}
+        </button>
 
-      <button
-        className="bg-blue-600 text-white py-2 rounded col-span-full hover:bg-blue-700 transition"
-      >
-        {editingFlight ? 'Update Flight' : 'Create Flight'}
-      </button>
+      </form>
 
-    </form>
+      {/* LIST */}
+      {loading ? (
+        <p className="text-center">Loading...</p>
+      ) : (
+        <div className="space-y-4">
 
-    {/* LIST */}
-    {loading && (
-      <p className="text-center text-gray-500">
-        Loading...
-      </p>
-    )}
+          {flights.map(f => (
+            <div key={f._id} className="border p-4 rounded flex justify-between items-center">
 
-    <div className="grid gap-4">
+              <div>
+                <p className="font-bold">{f.flightNumber}</p>
+                <p>{f.from} → {f.to}</p>
+                <p>₹ {f.price}</p>
+              </div>
 
-      {flights.map(f => (
-        <div key={f._id}
-          className="bg-white p-4 rounded shadow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border"
-        >
+              <div className="flex gap-4 text-lg">
 
-          <div>
-            <h3 className="font-bold text-blue-600">
-              {f.flightNumber}
-            </h3>
+                <FaEdit
+                  className="cursor-pointer text-blue-600"
+                  onClick={() => handleEdit(f)}
+                />
 
-            <p className="text-gray-600">
-              {f.from} → {f.to}
-            </p>
+                <FaTrash
+                  className="cursor-pointer text-red-600"
+                  onClick={() => handleDelete(f._id)}
+                />
 
-            <p className="text-sm text-gray-500">
-              ₹ {f.price}
-            </p>
-          </div>
+              </div>
 
-          <div className="flex gap-3">
-
-            <FaEdit
-              className="cursor-pointer text-blue-500 hover:text-blue-700"
-              onClick={() => handleEdit(f)}
-            />
-
-            <FaTrash
-              className="cursor-pointer text-red-500 hover:text-red-700"
-              onClick={() => handleDelete(f._id)}
-            />
-
-          </div>
+            </div>
+          ))}
 
         </div>
-      ))}
+      )}
 
     </div>
-
-  </div>
-);
+  );
 };
 
 export default AdminDashboard;
