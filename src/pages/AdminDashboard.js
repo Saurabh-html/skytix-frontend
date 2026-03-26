@@ -213,9 +213,24 @@ const AdminDashboard = ({ showAlert }) => {
           className="border p-2 rounded"
         />
 
-        <button className="col-span-2 bg-blue-600 text-white py-2 rounded">
-          {editingId ? 'Update Flight' : 'Create Flight'}
-        </button>
+        <div className="col-span-2 flex gap-3">
+  <button
+    type="submit"
+    className="flex-1 bg-blue-600 text-white py-2 rounded"
+  >
+    {editingId ? 'Update Flight' : 'Create Flight'}
+  </button>
+
+  {editingId && (
+    <button
+      type="button"
+      onClick={resetForm}
+      className="flex-1 bg-gray-500 text-white py-2 rounded"
+    >
+      Cancel
+    </button>
+  )}
+</div>
 
       </form>
 
