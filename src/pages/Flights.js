@@ -186,12 +186,23 @@ const handlePayment = async () => {
 
     await new Promise(res => setTimeout(res, 800));
 
-    // ✅ FIX: remove seat field before sending
+    // KEEP seat (IMPORTANT)
     const cleanPassengers = passengers.map(p => ({
-      name: p.name,
+      name: p.name?.trim(),
       age: Number(p.age),
-      gender: p.gender
+      gender: p.gender,
+      seat: p.seat
     }));
+
+    // STRICT VALIDATION (MATCH BACKEND)
+    for (let p of cleanPassengers) {
+      if (!p.name || !p.age || !p.gender || !p.seat) {
+        showAlert('Invalid passenger details', 'danger');
+        return;
+      }
+    }
+
+    console.log("SENDING:", cleanPassengers); // debug
 
     await API.post('/bookings', {
       flightId: selectedFlight._id,
@@ -210,7 +221,7 @@ const handlePayment = async () => {
     await searchFlights();
 
   } catch (err) {
-    console.log(err.response?.data); // 🔥 DEBUG
+    console.log("ERROR:", err.response?.data);
     showAlert(err.response?.data?.message || 'Booking failed', 'danger');
   } finally {
     setPaymentLoading(false);
