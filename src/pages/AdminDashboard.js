@@ -7,17 +7,21 @@ const AdminDashboard = ({ showAlert }) => {
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [editingId, setEditingId] = useState(null);
+
   const [form, setForm] = useState({
     flightNumber: '',
     from: '',
     to: '',
     departureTime: '',
     arrivalTime: '',
-    price: '',
-    seatsAvailable: ''
+    economy: '',
+    business: '',
+    first: '',
+    priceEconomy: '',
+    priceBusiness: '',
+    priceFirst: ''
   });
-
-  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchFlights();
@@ -36,29 +40,40 @@ const AdminDashboard = ({ showAlert }) => {
     }
   };
 
+  // ✅ CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      const payload = {
+        flightNumber: form.flightNumber,
+        from: form.from,
+        to: form.to,
+        departureTime: form.departureTime,
+        arrivalTime: form.arrivalTime,
+
+        seatConfig: {
+          economy: Number(form.economy),
+          business: Number(form.business),
+          first: Number(form.first)
+        },
+
+        priceConfig: {
+          economy: Number(form.priceEconomy),
+          business: Number(form.priceBusiness),
+          first: Number(form.priceFirst)
+        }
+      };
+
       if (editingId) {
-        await API.put(`/flights/${editingId}`, form);
+        await API.put(`/flights/${editingId}`, payload);
         showAlert('Flight updated', 'success');
       } else {
-        await API.post('/flights', form);
+        await API.post('/flights', payload);
         showAlert('Flight created', 'success');
       }
 
-      setForm({
-        flightNumber: '',
-        from: '',
-        to: '',
-        departureTime: '',
-        arrivalTime: '',
-        price: '',
-        seatsAvailable: ''
-      });
-
-      setEditingId(null);
+      resetForm();
       fetchFlights();
 
     } catch {
@@ -66,19 +81,45 @@ const AdminDashboard = ({ showAlert }) => {
     }
   };
 
+  const resetForm = () => {
+    setForm({
+      flightNumber: '',
+      from: '',
+      to: '',
+      departureTime: '',
+      arrivalTime: '',
+      economy: '',
+      business: '',
+      first: '',
+      priceEconomy: '',
+      priceBusiness: '',
+      priceFirst: ''
+    });
+    setEditingId(null);
+  };
+
+  // ✅ EDIT FIXED
   const handleEdit = (f) => {
     setEditingId(f._id);
+
     setForm({
-      flightNumber: f.flightNumber,
-      from: f.from,
-      to: f.to,
-      departureTime: f.departureTime,
-      arrivalTime: f.arrivalTime,
-      price: f.price,
-      seatsAvailable: f.seatsAvailable
+      flightNumber: f.flightNumber || '',
+      from: f.from || '',
+      to: f.to || '',
+      departureTime: f.departureTime || '',
+      arrivalTime: f.arrivalTime || '',
+
+      economy: f.seatConfig?.economy || '',
+      business: f.seatConfig?.business || '',
+      first: f.seatConfig?.first || '',
+
+      priceEconomy: f.priceConfig?.economy || '',
+      priceBusiness: f.priceConfig?.business || '',
+      priceFirst: f.priceConfig?.first || ''
     });
   };
 
+  // ✅ DELETE FIX (NO JUMP)
   const handleDelete = async (id) => {
     try {
       const scrollY = window.scrollY;
@@ -104,45 +145,71 @@ const AdminDashboard = ({ showAlert }) => {
       {/* FORM */}
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 mb-6">
 
-        <input placeholder="Flight No"
+        <input placeholder="Flight Number"
           value={form.flightNumber}
-          onChange={e => setForm({...form, flightNumber:e.target.value})}
+          onChange={e => setForm({ ...form, flightNumber: e.target.value })}
           className="border p-2 rounded"
         />
 
         <input placeholder="From"
           value={form.from}
-          onChange={e => setForm({...form, from:e.target.value})}
+          onChange={e => setForm({ ...form, from: e.target.value })}
           className="border p-2 rounded"
         />
 
         <input placeholder="To"
           value={form.to}
-          onChange={e => setForm({...form, to:e.target.value})}
+          onChange={e => setForm({ ...form, to: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="Departure"
+        <input placeholder="Departure Time"
           value={form.departureTime}
-          onChange={e => setForm({...form, departureTime:e.target.value})}
+          onChange={e => setForm({ ...form, departureTime: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="Arrival"
+        <input placeholder="Arrival Time"
           value={form.arrivalTime}
-          onChange={e => setForm({...form, arrivalTime:e.target.value})}
+          onChange={e => setForm({ ...form, arrivalTime: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="Price"
-          value={form.price}
-          onChange={e => setForm({...form, price:e.target.value})}
+        {/* SEATS */}
+        <input placeholder="Economy Seats"
+          value={form.economy}
+          onChange={e => setForm({ ...form, economy: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="Seats"
-          value={form.seatsAvailable}
-          onChange={e => setForm({...form, seatsAvailable:e.target.value})}
+        <input placeholder="Business Seats"
+          value={form.business}
+          onChange={e => setForm({ ...form, business: e.target.value })}
+          className="border p-2 rounded"
+        />
+
+        <input placeholder="First Class Seats"
+          value={form.first}
+          onChange={e => setForm({ ...form, first: e.target.value })}
+          className="border p-2 rounded"
+        />
+
+        {/* PRICES */}
+        <input placeholder="Economy Price"
+          value={form.priceEconomy}
+          onChange={e => setForm({ ...form, priceEconomy: e.target.value })}
+          className="border p-2 rounded"
+        />
+
+        <input placeholder="Business Price"
+          value={form.priceBusiness}
+          onChange={e => setForm({ ...form, priceBusiness: e.target.value })}
+          className="border p-2 rounded"
+        />
+
+        <input placeholder="First Class Price"
+          value={form.priceFirst}
+          onChange={e => setForm({ ...form, priceFirst: e.target.value })}
           className="border p-2 rounded"
         />
 
@@ -164,11 +231,17 @@ const AdminDashboard = ({ showAlert }) => {
               <div>
                 <p className="font-bold">{f.flightNumber}</p>
                 <p>{f.from} → {f.to}</p>
-                <p>₹ {f.price}</p>
+
+                <p>
+                  Seats: E {f.seatConfig?.economy} | B {f.seatConfig?.business} | F {f.seatConfig?.first}
+                </p>
+
+                <p>
+                  ₹ E {f.priceConfig?.economy} | B {f.priceConfig?.business} | F {f.priceConfig?.first}
+                </p>
               </div>
 
               <div className="flex gap-4 text-lg">
-
                 <FaEdit
                   className="cursor-pointer text-blue-600"
                   onClick={() => handleEdit(f)}
@@ -178,7 +251,6 @@ const AdminDashboard = ({ showAlert }) => {
                   className="cursor-pointer text-red-600"
                   onClick={() => handleDelete(f._id)}
                 />
-
               </div>
 
             </div>
