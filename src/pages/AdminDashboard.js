@@ -14,13 +14,7 @@ const AdminDashboard = ({ showAlert }) => {
     from: '',
     to: '',
     departureTime: '',
-    arrivalTime: '',
-    economy: '',
-    business: '',
-    first: '',
-    priceEconomy: '',
-    priceBusiness: '',
-    priceFirst: ''
+    arrivalTime: ''
   });
 
   useEffect(() => {
@@ -44,7 +38,6 @@ const AdminDashboard = ({ showAlert }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🔥 basic validation
     if (!form.flightNumber || !form.from || !form.to) {
       showAlert('Please fill all required fields', 'warning');
       return;
@@ -56,19 +49,7 @@ const AdminDashboard = ({ showAlert }) => {
         from: form.from,
         to: form.to,
         departureTime: form.departureTime,
-        arrivalTime: form.arrivalTime,
-
-        seatConfig: {
-          economy: Number(form.economy),
-          business: Number(form.business),
-          first: Number(form.first)
-        },
-
-        priceConfig: {
-          economy: Number(form.priceEconomy),
-          business: Number(form.priceBusiness),
-          first: Number(form.priceFirst)
-        }
+        arrivalTime: form.arrivalTime
       };
 
       if (editingId) {
@@ -94,13 +75,7 @@ const AdminDashboard = ({ showAlert }) => {
       from: '',
       to: '',
       departureTime: '',
-      arrivalTime: '',
-      economy: '',
-      business: '',
-      first: '',
-      priceEconomy: '',
-      priceBusiness: '',
-      priceFirst: ''
+      arrivalTime: ''
     });
     setEditingId(null);
   };
@@ -114,15 +89,7 @@ const AdminDashboard = ({ showAlert }) => {
       from: f.from || '',
       to: f.to || '',
       departureTime: f.departureTime || '',
-      arrivalTime: f.arrivalTime || '',
-
-      economy: f.seatConfig?.economy || '',
-      business: f.seatConfig?.business || '',
-      first: f.seatConfig?.first || '',
-
-      priceEconomy: f.priceConfig?.economy || '',
-      priceBusiness: f.priceConfig?.business || '',
-      priceFirst: f.priceConfig?.first || ''
+      arrivalTime: f.arrivalTime || ''
     });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -154,71 +121,38 @@ const AdminDashboard = ({ showAlert }) => {
       {/* FORM */}
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 mb-6">
 
-        <input placeholder="Flight Number"
+        <input
+          placeholder="Flight Number"
           value={form.flightNumber}
           onChange={e => setForm({ ...form, flightNumber: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="From"
+        <input
+          placeholder="From"
           value={form.from}
           onChange={e => setForm({ ...form, from: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="To"
+        <input
+          placeholder="To"
           value={form.to}
           onChange={e => setForm({ ...form, to: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="Departure Time"
+        <input
+          placeholder="Departure Time"
           value={form.departureTime}
           onChange={e => setForm({ ...form, departureTime: e.target.value })}
           className="border p-2 rounded"
         />
 
-        <input placeholder="Arrival Time"
+        <input
+          placeholder="Arrival Time"
           value={form.arrivalTime}
           onChange={e => setForm({ ...form, arrivalTime: e.target.value })}
-          className="border p-2 rounded"
-        />
-
-        {/* SEATS */}
-        <input placeholder="Economy Seats"
-          value={form.economy}
-          onChange={e => setForm({ ...form, economy: e.target.value })}
-          className="border p-2 rounded"
-        />
-
-        <input placeholder="Business Seats"
-          value={form.business}
-          onChange={e => setForm({ ...form, business: e.target.value })}
-          className="border p-2 rounded"
-        />
-
-        <input placeholder="First Class Seats"
-          value={form.first}
-          onChange={e => setForm({ ...form, first: e.target.value })}
-          className="border p-2 rounded"
-        />
-
-        {/* PRICES */}
-        <input placeholder="Economy Price"
-          value={form.priceEconomy}
-          onChange={e => setForm({ ...form, priceEconomy: e.target.value })}
-          className="border p-2 rounded"
-        />
-
-        <input placeholder="Business Price"
-          value={form.priceBusiness}
-          onChange={e => setForm({ ...form, priceBusiness: e.target.value })}
-          className="border p-2 rounded"
-        />
-
-        <input placeholder="First Class Price"
-          value={form.priceFirst}
-          onChange={e => setForm({ ...form, priceFirst: e.target.value })}
           className="border p-2 rounded"
         />
 
@@ -255,14 +189,7 @@ const AdminDashboard = ({ showAlert }) => {
               <div>
                 <p className="font-bold">{f.flightNumber}</p>
                 <p>{f.from} → {f.to}</p>
-
-                <p>
-                  Seats: E {f.seatConfig?.economy} | B {f.seatConfig?.business} | F {f.seatConfig?.first}
-                </p>
-
-                <p>
-                  ₹ E {f.priceConfig?.economy} | B {f.priceConfig?.business} | F {f.priceConfig?.first}
-                </p>
+                <p>{f.departureTime} → {f.arrivalTime}</p>
               </div>
 
               <div className="flex gap-4 text-lg">
