@@ -33,8 +33,8 @@ const AdminDashboard = ({ showAlert }) => {
       setLoading(true);
       const res = await API.get('/flights');
       setFlights(res.data.flights || []);
-    } catch {
-      showAlert('Unable to load flights', 'danger');
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Unable to load flights', 'danger');
     } finally {
       setLoading(false);
     }
@@ -43,6 +43,12 @@ const AdminDashboard = ({ showAlert }) => {
   // ✅ CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔥 basic validation
+    if (!form.flightNumber || !form.from || !form.to) {
+      showAlert('Please fill all required fields', 'warning');
+      return;
+    }
 
     try {
       const payload = {
@@ -67,17 +73,18 @@ const AdminDashboard = ({ showAlert }) => {
 
       if (editingId) {
         await API.put(`/flights/${editingId}`, payload);
-        showAlert('Flight updated', 'success');
+        showAlert('Flight updated successfully', 'success');
       } else {
         await API.post('/flights', payload);
-        showAlert('Flight created', 'success');
+        showAlert('Flight created successfully', 'success');
       }
 
       resetForm();
       fetchFlights();
 
-    } catch {
-      showAlert('Operation failed', 'danger');
+    } catch (err) {
+      console.log(err.response?.data);
+      showAlert(err.response?.data?.message || 'Operation failed', 'danger');
     }
   };
 
@@ -98,7 +105,7 @@ const AdminDashboard = ({ showAlert }) => {
     setEditingId(null);
   };
 
-  // ✅ EDIT FIXED
+  // ✅ EDIT
   const handleEdit = (f) => {
     setEditingId(f._id);
 
@@ -117,9 +124,11 @@ const AdminDashboard = ({ showAlert }) => {
       priceBusiness: f.priceConfig?.business || '',
       priceFirst: f.priceConfig?.first || ''
     });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ✅ DELETE FIX (NO JUMP)
+  // ✅ DELETE
   const handleDelete = async (id) => {
     try {
       const scrollY = window.scrollY;
@@ -132,8 +141,8 @@ const AdminDashboard = ({ showAlert }) => {
 
       showAlert('Flight deleted', 'success');
 
-    } catch {
-      showAlert('Delete failed', 'danger');
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Delete failed', 'danger');
     }
   };
 
@@ -214,23 +223,23 @@ const AdminDashboard = ({ showAlert }) => {
         />
 
         <div className="col-span-2 flex gap-3">
-  <button
-    type="submit"
-    className="flex-1 bg-blue-600 text-white py-2 rounded"
-  >
-    {editingId ? 'Update Flight' : 'Create Flight'}
-  </button>
+          <button
+            type="submit"
+            className="flex-1 bg-blue-600 text-white py-2 rounded"
+          >
+            {editingId ? 'Update Flight' : 'Create Flight'}
+          </button>
 
-  {editingId && (
-    <button
-      type="button"
-      onClick={resetForm}
-      className="flex-1 bg-gray-500 text-white py-2 rounded"
-    >
-      Cancel
-    </button>
-  )}
-</div>
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="flex-1 bg-gray-500 text-white py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
 
       </form>
 

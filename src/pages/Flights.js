@@ -184,20 +184,24 @@ const handlePayment = async () => {
   try {
     setPaymentLoading(true);
 
-    //  Simulate payment delay (real-world feel)
     await new Promise(res => setTimeout(res, 800));
 
-    //  Direct booking (no card validation)
+    // ✅ FIX: remove seat field before sending
+    const cleanPassengers = passengers.map(p => ({
+      name: p.name,
+      age: Number(p.age),
+      gender: p.gender
+    }));
+
     await API.post('/bookings', {
       flightId: selectedFlight._id,
       date,
-      passengers,
+      passengers: cleanPassengers,
       seatClass
     });
 
     showAlert('Booking successful', 'success');
 
-    // ✅ Reset states safely
     setShowPayment(false);
     setSelectedFlight(null);
     setPassengers([{ name: '', age: '', gender: '', seat: '' }]);
@@ -205,8 +209,9 @@ const handlePayment = async () => {
 
     await searchFlights();
 
-  } catch {
-    showAlert('Unable to complete booking. Please try again.', 'danger');
+  } catch (err) {
+    console.log(err.response?.data); // 🔥 DEBUG
+    showAlert(err.response?.data?.message || 'Booking failed', 'danger');
   } finally {
     setPaymentLoading(false);
   }
